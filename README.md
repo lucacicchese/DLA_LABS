@@ -1,5 +1,12 @@
 # DLA_LABS
 
+### Contents
+1. [Completed exercises](#Completed-exercises)
+2. [File Structure](#File-Structure)
+3. [Environment](#Environment)
+4. [References](#References)
+
+
 ## Completed exercises
 
 |  Exercise   | DONE  | WIP |
