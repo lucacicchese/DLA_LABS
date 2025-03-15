@@ -22,7 +22,7 @@
 
 ## File Structure
 Each lab has its own folder called LAB**XX** containing 
-- _Lab**X**_Homework_: A notebook with code & comments
+- *Lab**X**_Homework*: A notebook with code & comments
 - _runs_: A folder containing all runs data that can be visualized with 
 tensorboard
 
