@@ -1,0 +1,42 @@
+{
+  "os": "macOS-13.4-arm64-arm-64bit-Mach-O",
+  "python": "CPython 3.13.2",
+  "startedAt": "2025-03-15T17:01:46.380488Z",
+  "program": "LAB01/Lab1_Homework.ipynb",
+  "git": {
+    "remote": "https://github.com/lucacicchese/DLA_LABS.git",
+    "commit": "78ad3f50f8b4c01271c1af84127b3c2d9f5b1fed"
+  },
+  "email": "luca.cicchese@gmail.com",
+  "root": "/Users/luca/Documents/GitHub/DLA_LABS/LAB01",
+  "host": "Alessandras-Air.station",
+  "executable": "/Users/luca/anaconda3/envs/DLA/bin/python",
+  "cpu_count": 8,
+  "cpu_count_logical": 8,
+  "disk": {
+    "/": {
+      "total": "245107195904",
+      "used": "153557245952"
+    },
+    "/System/Volumes/Data": {
+      "total": "245107195904",
+      "used": "153557245952"
+    }
+  },
+  "memory": {
+    "total": "8589934592"
+  },
+  "cpu": {
+    "count": 8,
+    "countLogical": 8
+  },
+  "apple": {
+    "name": "Apple M1",
+    "ecpuCores": 4,
+    "pcpuCores": 4,
+    "gpuCores": 7,
+    "memoryGb": 8,
+    "swapTotalBytes": "1073741824",
+    "ramTotalBytes": "8589934592"
+  }
+}
