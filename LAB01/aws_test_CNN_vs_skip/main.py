@@ -16,6 +16,18 @@ import torchvision
 import random
 import wandb
 
+
+# Hyperparameters
+eval_percentage = 0.3
+lr = 0.0001
+opt = 'Adam'
+loss = 'CrossEntropy'
+epochs = 30
+#layers = [28*28, 64, 64, 64, 10]
+#layers = [28*28, 64, 128, 64, 64, 10] #MNIST sizes
+layers = [32*32*3, 64, 128, 64, 64, 10] #CIFAR10 sizes
+batch_size = 128
+
 # Data import
 
 def import_CIFAR():
@@ -228,14 +240,14 @@ def main():
     
     # Choose optimizer
     if opt == 'Adam':
-        optimizer = torch.optim.Adam(modelskip.parameters(), lr=lr)
+       optimizer = torch.optim.Adam(modelskip.parameters(), lr=lr)
         
     writer = SummaryWriter(log_dir=f"runs/MNIST-model='skipMLP'-lr={lr}-opt={opt}-loss={loss}-epochs={epochs}-batch_size={batch_size}-layers={layers}")
     
     losses_and_accs = train_model(modelskip, optimizer, loss, epochs, train_data, eval_data, device, writer)
     
     print(f"Minimum loss = {np.min(losses_and_accs)}")
-    (accuracy, _) = evaluate(model, test_data, device=device)
+    (accuracy, _) = evaluate(modelskip, test_data, device=device)
     
     print(f"Accuracy on test set: {accuracy}")
     
@@ -255,7 +267,7 @@ def main():
     )
     # Instance of the model
     print(f"Training a simple CNN with {opt} and {loss}")
-    model = simpleCONV(layers)
+    model = simpleCONV(layers, 32, 3)
     model.to(device)
     #print(model)
     
