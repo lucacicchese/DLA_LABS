@@ -1,0 +1,29 @@
+{
+  "os": "Linux-6.11.0-17-generic-x86_64-with-glibc2.39",
+  "python": "CPython 3.13.2",
+  "startedAt": "2025-03-20T07:26:22.814606Z",
+  "program": "LAB01/Lab1_Homework.ipynb",
+  "git": {
+    "remote": "git@github.com:lucacicchese/DLA_LABS.git",
+    "commit": "a8905f506208bf9d200959670b1a14053cd5daa6"
+  },
+  "email": "luca.cicchese@gmail.com",
+  "root": "/home/luca/Documents/GitHub/DLA_LABS/LAB01",
+  "host": "luca-Macbuntu",
+  "executable": "/home/luca/anaconda3/envs/DLA/bin/python",
+  "cpu_count": 2,
+  "cpu_count_logical": 4,
+  "disk": {
+    "/": {
+      "total": "121639878656",
+      "used": "28177752064"
+    }
+  },
+  "memory": {
+    "total": "8264433664"
+  },
+  "cpu": {
+    "count": 2,
+    "countLogical": 4
+  }
+}
