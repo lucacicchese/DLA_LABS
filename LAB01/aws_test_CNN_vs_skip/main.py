@@ -19,13 +19,14 @@ import wandb
 
 # Hyperparameters
 eval_percentage = 0.3
-lr = 0.0001
-opt = 'Adam'
+lr = 0.1
+opt = 'SGD'
 loss = 'CrossEntropy'
 epochs = 30
 #layers = [28*28, 64, 64, 64, 10]
 #layers = [28*28, 64, 128, 64, 64, 10] #MNIST sizes
-layers = [32*32*3, 64, 128, 64, 64, 10] #CIFAR10 sizes
+layers = [32*32*3, 64, 128, 128, 128, 64, 64, 10] #CIFAR10 sizes
+layers_conv = [32*32*3, 64, 128, 64, 10]
 batch_size = 128
 
 # Data import
@@ -202,28 +203,18 @@ class simpleCONV(nn.Module):
 def main():
     # Hyperparameters
     eval_percentage = 0.3
-    lr = 0.0001
-    opt = 'Adam'
+    lr = 0.1
+    opt = 'SGD'
     loss = 'CrossEntropy'
     epochs = 30
     #layers = [28*28, 64, 64, 64, 10]
     #layers = [28*28, 64, 128, 64, 64, 10] #MNIST sizes
-    layers = [32*32*3, 64, 128, 64, 64, 10] #CIFAR10 sizes
-    batch_size = 128
+    layers = [32*32*3, 128, 128, 64, 64, 128, 128, 128, 64, 64, 10] #CIFAR10 sizes
+    layers_conv = [32*32*3, 64, 128, 64, 10]
+    batch_size = 64
     # Start a new wandb run to track this script.
-    run = wandb.init(
-        # Set the wandb entity where your project will be logged (generally your team name).
-        entity="luca-cicchese-universit-di-firenze",
-        # Set the wandb project where this run will be logged.
-        project="AWS",
-        # Track hyperparameters and run metadata.
-        config={
-            "learning_rate": lr,
-            "architecture": "skipMLP",
-            "dataset": "CIFAR10",
-            "epochs": epochs,
-        },
-    )
+
+    
 
     # Main function skip connections
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -236,13 +227,15 @@ def main():
     print(f"Training a skip connections MLP with {opt} and {loss}")
     modelskip = skipMLP(layers)
     modelskip.to(device)
-    #print(model)
+    print(modelskip)
     
     # Choose optimizer
     if opt == 'Adam':
        optimizer = torch.optim.Adam(modelskip.parameters(), lr=lr)
+    elif opt == 'SGD':
+        optimizer = torch.optim.SGD(modelskip.parameters(), lr=lr)
         
-    writer = SummaryWriter(log_dir=f"runs/MNIST-model='skipMLP'-lr={lr}-opt={opt}-loss={loss}-epochs={epochs}-batch_size={batch_size}-layers={layers}")
+    writer = SummaryWriter(log_dir=f"runs/local-model='skipMLP'-lr={lr}-opt={opt}-loss={loss}-epochs={epochs}-batch_size={batch_size}-layers={layers}")
     
     losses_and_accs = train_model(modelskip, optimizer, loss, epochs, train_data, eval_data, device, writer)
     
@@ -252,22 +245,10 @@ def main():
     print(f"Accuracy on test set: {accuracy}")
     
     # Main function CNN 
-    run = wandb.init(
-        # Set the wandb entity where your project will be logged (generally your team name).
-        entity="luca-cicchese-universit-di-firenze",
-        # Set the wandb project where this run will be logged.
-        project="CNN_on_AWS",
-        # Track hyperparameters and run metadata.
-        config={
-            "learning_rate": lr,
-            "architecture": "simpleCNN",
-            "dataset": "CIFAR10",
-            "epochs": epochs,
-        },
-    )
+  
     # Instance of the model
     print(f"Training a simple CNN with {opt} and {loss}")
-    model = simpleCONV(layers, 32, 3)
+    model = simpleCONV(layers_conv, 32, 3)
     model.to(device)
     #print(model)
     
@@ -275,7 +256,7 @@ def main():
     if opt == 'Adam':
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     
-    writer = SummaryWriter(log_dir=f"runs/CIFAR10-model='simpleCONV'-lr={lr}-opt={opt}-loss={loss}-epochs={epochs}-batch_size={batch_size}-layers={layers}")
+    writer = SummaryWriter(log_dir=f"runs/CIFAR10-model='simpleCONV'-lr={lr}-opt={opt}-loss={loss}-epochs={epochs}-batch_size={batch_size}-layers={layers_conv}")
     
     losses_and_accs = train_model(model, optimizer, loss, epochs, train_data, eval_data, device, writer)
     

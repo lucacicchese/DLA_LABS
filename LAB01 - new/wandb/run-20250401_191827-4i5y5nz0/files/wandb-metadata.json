@@ -1,0 +1,31 @@
+{
+  "os": "Linux-6.11.0-21-generic-x86_64-with-glibc2.39",
+  "python": "CPython 3.13.2",
+  "startedAt": "2025-04-01T17:18:27.761461Z",
+  "program": "/home/luca/Documents/GitHub/DLA_LABS/LAB01 - new/Exercise1_1.py",
+  "codePath": "LAB01 - new/Exercise1_1.py",
+  "git": {
+    "remote": "git@github.com:lucacicchese/DLA_LABS.git",
+    "commit": "103bda86a94bbce6b7221dc9c48a9253aea85966"
+  },
+  "email": "luca.cicchese@gmail.com",
+  "root": "/home/luca/Documents/GitHub/DLA_LABS/LAB01 - new",
+  "host": "luca-Macbuntu",
+  "executable": "/home/luca/anaconda3/envs/DLA/bin/python",
+  "codePathLocal": "Exercise1_1.py",
+  "cpu_count": 2,
+  "cpu_count_logical": 4,
+  "disk": {
+    "/": {
+      "total": "121639878656",
+      "used": "54272688128"
+    }
+  },
+  "memory": {
+    "total": "8264404992"
+  },
+  "cpu": {
+    "count": 2,
+    "countLogical": 4
+  }
+}
