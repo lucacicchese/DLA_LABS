@@ -1,9 +1,10 @@
 # DLA_LABS
 
-### Contents
-1. [Completed exercises](#Completed-exercises)
-2. [Detailed file structure](#File-Structure)
-3. [Environment](#Environment)
+## Contents
+
+1. [Completed exercises](#completed-exercises)
+2. [Detailed file structure](#file-structure)
+3. [Environment](#environment)
 4. [Exercise 1.1](#exercise-11---simple-mlp)
 5. [Exercise 1.2](#exercise-12---mlp--residual-connections)
 6. [Exercise 1.3](#exercise-13---cnn)
@@ -19,6 +20,7 @@
 | LAB01 Exercise 2.3 |  | 🔁 |
 
 ### TODO List
+
 - LAB01 Save models
 - LAB01 Comment everything
 - LAB01 Visualize conv kernels
@@ -26,6 +28,7 @@
 - LAB01 Exercise 2
 
 ## File Structure
+
 ```
 LAB01
 │   README.md
@@ -50,13 +53,14 @@ LAB01
 
  ```
 
-
 ## Environment
+
 The testing environment has been managed with anaconda:
-`conda create -n DLA -c conda-forge jupyterlab ipython matplotlib 
+`conda create -n DLA -c conda-forge jupyterlab ipython matplotlib
 scikit-learn tqdm pytorch torchvision tensorboard standard-imghdr`
 
 ## Exercise 1.1 - Simple MLP
+
 Implementation of a simple multilayer perceptron to classify the 10 digits of MNIST
 
 ### Implementation
@@ -64,6 +68,7 @@ Implementation of a simple multilayer perceptron to classify the 10 digits of MN
 ### Results
 
 ## Exercise 1.2 - MLP + residual connections
+
 Implementation of a multilayer perceptron with residual connections
 
 ### Implementation
