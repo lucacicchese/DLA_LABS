@@ -1,9 +1,10 @@
 # DLA_LABS
 
-### Contents
-1. [Completed exercises](#Completed-exercises)
-2. [Detailed file structure](#File-Structure)
-3. [Environment](#Environment)
+## Contents
+
+1. [Completed exercises](#completed-exercises)
+2. [Detailed file structure](#file-structure)
+3. [Environment](#environment)
 4. [Exercise 1](#)
 5. [Exercise 1.2](#)
 6. [Exercise 1.3](#)
@@ -19,8 +20,8 @@
 
 ### TODO List
 
-
 ## File Structure
+
 ```
 LAB02
 │   README.md
@@ -44,26 +45,25 @@ LAB02
 
  ```
 
-
 ## Environment
+
 The testing environment has been managed with anaconda:
-`conda create -n DLA -c conda-forge jupyterlab ipython matplotlib 
+`conda create -n DLA -c conda-forge jupyterlab ipython matplotlib
 scikit-learn tqdm pytorch torchvision tensorboard standard-imghdr`
 
 ## Exercise 1 - Reinforce Implementation
 
+### Implementation
+
+### Results
+
+## Exercise 2 -
 
 ### Implementation
 
 ### Results
 
-## Exercise 2 - 
-
-### Implementation
-
-### Results
-
-## Exercise 3.1 - 
+## Exercise 3.1 -
 
 ### Implementation
 

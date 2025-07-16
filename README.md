@@ -1,10 +1,10 @@
 # DLA_LABS
 
-### Contents
-1. [Completed exercises](#Completed-exercises)
-2. [File Structure](#File-Structure)
-3. [References](#References)
+## Contents
 
+1. [Completed exercises](#completed-exercises)
+2. [File Structure](#file-structure)
+3. [References](#references)
 
 ## Completed exercises
 
@@ -23,20 +23,17 @@
 | LAB04 Exercise 2.2 |  | 🔁 |[Go to section](LAB04/README.md)|
 | LAB04 Exercise 3.3 |  | 🔁 |[Go to section](LAB04/README.md)|
 
-
-
 ## File Structure
-Each lab has its own folder called LAB**XX** containing 
+
+Each lab has its own folder called LAB**XX** containing
+
 - _README.md_: A readme explaining each exercise completed in the lab with results
-- *Lab**X**_Homework*: A notebook with code & comments
-- _runs_: A folder containing all runs data that can be visualized with 
+- _Lab**X**_Homework_: A notebook with code & comments
+- _runs_: A folder containing all runs data that can be visualized with
 tensorboard
 
+## References
 
-
-
-
-## References 
 - Professor Bagdanov's jupyter notebooks
-- _Deep Learning with PyTorch Step-by-Step A Beginner’s Guide_ by **Daniel 
+- _Deep Learning with PyTorch Step-by-Step A Beginner’s Guide_ by **Daniel
 Voigt Godoy**
