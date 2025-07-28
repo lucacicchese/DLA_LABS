@@ -14,7 +14,6 @@ from sklearn.metrics import accuracy_score, classification_report
 from torch.utils.tensorboard import SummaryWriter
 import torchvision
 import random
-import wandb
 
 from dataset import load_dataset
 from training import train_model
@@ -25,54 +24,67 @@ import models
 
 if __name__ == "__main__":
 
-    # Hyperparameters
-    eval_percentage = 0.3
-    lr = 0.0001
-    opt = 'Adam'
-    loss = 'CrossEntropy'
-    epochs = 5
-    layers = [28*28, 64, 128, 64, 64, 10] 
-    batch_size = 64
-    dataset_name = 'MNIST'
+    config = {
+    "project_name": "deep_learning_project",  # nome progetto per wandb
+
+    "dataset_name": "MNIST",  # usato per caricare il dataset
+
+    "training": {
+        "eval_percentage": 0.3,
+        "learning_rate": 0.0001,
+        "optimizer": "adam",  # deve essere lowercase per funzionare correttamente con il codice
+        "epochs": 20,
+        "batch_size": 64,
+        "resume": False,  # per caricare checkpoint se True
+        "layers": [28*28, 64, 128, 64, 64, 10],
+        "dataset_name": 'MNIST',
+        "loss_function": "crossentropy"
+    },
+
+    "model": {
+        "type": "mlp",  # nome da usare nei checkpoint (puoi mettere anche CNN, ResNet ecc.)
+        "layers": [28 * 28, 64, 128, 64, 64, 10]  # per costruire la rete (se serve)
+    },
+
+    "logging": {
+        "tensorboard": False,
+        "weightsandbiases": False,
+        "wandb": False,  # usato nel log_epoch (attenzione, c'è sia `weightsandbiases` che `wandb`)
+        "tb_logs": "tensorboard_logs",  # directory per tensorboard
+        "save_dir": "checkpoints",      # directory per i checkpoint
+        "save_frequency": 1             # ogni quanto salvare i checkpoint
+    }
+}
 
 
-    # Start a new wandb run to track this script.
-    run = wandb.init(
-        # Set the wandb entity where your project will be logged (generally your team name).
-        entity="luca-cicchese-universit-di-firenze",
-        # Set the wandb project where this run will be logged.
-        project="CNN_on_AWS",
-        # Track hyperparameters and run metadata.
-        config={
-            "learning_rate": lr,
-            "architecture": "simpleCNN",
-            "dataset": "MNIST",
-            "epochs": epochs,
-        },
-    )
+
+
+    train_hyperparameters = config["training"]
+
+
     
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"Training on {device}")
 
     print("Loading dataset...")
-    (train_data, eval_data, test_data) = load_dataset(dataset_name)
+    (train_data, eval_data, test_data) = load_dataset(train_hyperparameters['dataset_name'])
 
 
     # Instance of the model
-    print(f"Training a simple MPL with {opt} and {loss}")
-    model = models.simpleMLP(layers)
+    print(f"Training a simple MPL with {train_hyperparameters['optimizer']} and {train_hyperparameters['loss_function']}")
+    model = models.simpleMLP(train_hyperparameters['layers'])
     model.to(device)
     #print(model)
 
     # Choose optimizer
-    if opt == 'Adam':
-        optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    if train_hyperparameters['optimizer'] == 'Adam':
+        optimizer = torch.optim.Adam(model.parameters(), lr=train_hyperparameters['learning_rate'])
 
-    writer = SummaryWriter(log_dir=f"runs/MNIST-model='MLP'-lr={lr}-opt={opt}-loss={loss}-epochs={epochs}-batch_size={batch_size}-layers={layers}")
+    writer = SummaryWriter(log_dir=f"runs/MNIST-model='MLP'-lr={train_hyperparameters['learning_rate']}-opt={train_hyperparameters['optimizer']}-loss={train_hyperparameters['loss_function']}-epochs={train_hyperparameters['epochs']}-batch_size={train_hyperparameters['batch_size']}-layers={train_hyperparameters['layers']}")
 
-    losses_and_accs = train_model(model, optimizer, loss, epochs, train_data, eval_data, device, writer)
+    accuracies = train_model(model, train_data, eval_data, config, device)
 
-    print(f"Minimum loss = {np.min(losses_and_accs)}")
-    accuracy = evaluate(model, test_data, device=device)
+    print(f"Minimum loss = {np.min(accuracies)}")
+    accuracy = evaluate(model, test_data, config["training"]["loss_function"], device=device)
 
     print(f"Accuracy on test set: {accuracy}")

@@ -139,7 +139,7 @@ def get_loss(config):
     Returns:
         nn.Module: Selected loss function
     """
-    loss_name = str(config["training"]["loss"])
+    loss_name = str(config["training"]["loss_function"])
 
     if loss_name == "MSE":
         loss = nn.MSELoss()
@@ -218,14 +218,14 @@ def train_model(model, train_loader, val_loader, config, device):
             total_train_loss += loss.item()
 
         # Validation
-        val_loss, val_accuracy = evaluate(model, val_loader, loss_fn, device)
+        val_accuracy = evaluate(model, val_loader, loss_fn, device)
 
         # Tracking
-        val_losses.append(val_loss)
         val_accuracies.append(val_accuracy)
+        print(val_accuracies)
 
         # Log to wandb and tensorboard
-        log_epoch(epoch, val_loss,  val_accuracy, config, tb_writer)
+        #log_epoch(epoch, val_accuracy, config, tb_writer)
 
         # Checkpointing
         if (epoch + 1) % save_interval == 0  or epoch == epochs-1:
@@ -234,10 +234,9 @@ def train_model(model, train_loader, val_loader, config, device):
                 "epoch": epoch + 1,
                 "model_state_dict": model.state_dict(),
                 "optimizer_state_dict": optimizer.state_dict(),
-                "val_loss": val_loss,
                 "val_losses": val_losses,
                 "val_accuracies": val_accuracies,
             }
             save_checkpoint(checkpoint, checkpoint_dir)
 
-    return (val_losses, val_accuracies)
+    return (val_accuracies)

@@ -73,17 +73,16 @@ def load_dataset(dataset_name='MNIST', val_percentage = 0.3, batch_size = 64):
         ds_train = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform) 
         ds_test = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform) 
 
-    print('here')
+
     train_size = int(len(ds_train)*(1-val_percentage))
     val_size = len(ds_train)-train_size
     ds_train, ds_val = random_split(ds_train, [train_size, val_size])
-    print('passed')
+
 
     train_loader = torch.utils.data.DataLoader(ds_train, batch_size, shuffle=True, num_workers=4)
     val_loader   = torch.utils.data.DataLoader(ds_val, batch_size, num_workers=4)
     test_loader  = torch.utils.data.DataLoader(ds_test, batch_size, shuffle=True, num_workers=4)    
     
-    train_loader, val_loader, test_loader = load_dataset(dataset_name)
 
     return train_loader, val_loader, test_loader
 
