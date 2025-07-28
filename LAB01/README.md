@@ -56,8 +56,7 @@ LAB01
 ## Environment
 
 The testing environment has been managed with anaconda:
-`conda create -n DLA -c conda-forge jupyterlab ipython matplotlib
-scikit-learn tqdm pytorch torchvision tensorboard standard-imghdr`
+`conda env create -f environment.yml`
 
 ## Exercise 1.1 - Simple MLP
 
