@@ -1,24 +1,11 @@
 # Libraries
-import numpy as np
-import matplotlib.pyplot as plt
-from functools import reduce
-import torch
-from torchvision.datasets import MNIST
-from torchvision.datasets import CIFAR10
-from torch.utils.data import Subset
-import torch.nn as nn
-import torch.nn.functional as F 
-import torchvision.transforms as transforms
-from tqdm import tqdm 
-from sklearn.metrics import accuracy_score, classification_report
-from torch.utils.tensorboard import SummaryWriter
-import torchvision
-import random
-
 from dataset import load_dataset
 from training import train_model
 from evaluate import evaluate
 import models
+
+import numpy as np
+import torch
 
 
 
@@ -78,8 +65,6 @@ if __name__ == "__main__":
     # Choose optimizer
     if train_hyperparameters['optimizer'] == 'Adam':
         optimizer = torch.optim.Adam(model.parameters(), lr=train_hyperparameters['learning_rate'])
-
-    writer = SummaryWriter(log_dir=f"runs/MNIST-model='skip-MLP'-lr={train_hyperparameters['learning_rate']}-opt={train_hyperparameters['optimizer']}-loss={train_hyperparameters['loss_function']}-epochs={train_hyperparameters['epochs']}-batch_size={train_hyperparameters['batch_size']}-layers={train_hyperparameters['layers']}")
 
     accuracies = train_model(model, train_data, eval_data, config, device)
 

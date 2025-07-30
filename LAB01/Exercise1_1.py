@@ -5,11 +5,7 @@ from evaluate import evaluate
 import models
 
 import numpy as np
-import matplotlib.pyplot as plt
 import torch
-
-
-
 
 
 if __name__ == "__main__":
