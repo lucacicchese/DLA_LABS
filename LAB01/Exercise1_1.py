@@ -1,58 +1,48 @@
 # Libraries
-import numpy as np
-import matplotlib.pyplot as plt
-from functools import reduce
-import torch
-from torchvision.datasets import MNIST
-from torchvision.datasets import CIFAR10
-from torch.utils.data import Subset
-import torch.nn as nn
-import torch.nn.functional as F 
-import torchvision.transforms as transforms
-from tqdm import tqdm 
-from sklearn.metrics import accuracy_score, classification_report
-from torch.utils.tensorboard import SummaryWriter
-import torchvision
-import random
-
 from dataset import load_dataset
-from training import train_model
+from training import train_model, get_loss
 from evaluate import evaluate
 import models
+
+import numpy as np
+import matplotlib.pyplot as plt
+import torch
+
+
 
 
 
 if __name__ == "__main__":
 
     config = {
-    "project_name": "deep_learning_project",  # nome progetto per wandb
+    "project_name": "LAB01_Exercise1_1", 
 
-    "dataset_name": "MNIST",  # usato per caricare il dataset
+    "dataset_name": "MNIST",  
 
     "training": {
         "eval_percentage": 0.3,
         "learning_rate": 0.0001,
-        "optimizer": "adam",  # deve essere lowercase per funzionare correttamente con il codice
+        "optimizer": "adam",  
         "epochs": 20,
         "batch_size": 64,
-        "resume": False,  # per caricare checkpoint se True
+        "resume": True, 
         "layers": [28*28, 64, 128, 64, 64, 10],
         "dataset_name": 'MNIST',
         "loss_function": "crossentropy"
     },
 
     "model": {
-        "type": "mlp",  # nome da usare nei checkpoint (puoi mettere anche CNN, ResNet ecc.)
-        "layers": [28 * 28, 64, 128, 64, 64, 10]  # per costruire la rete (se serve)
+        "type": "mlp",  
+        "layers": [28 * 28, 64, 128, 64, 64, 10]  
     },
 
     "logging": {
-        "tensorboard": False,
-        "weightsandbiases": False,
-        "wandb": False,  # usato nel log_epoch (attenzione, c'è sia `weightsandbiases` che `wandb`)
-        "tb_logs": "tensorboard_logs",  # directory per tensorboard
-        "save_dir": "checkpoints",      # directory per i checkpoint
-        "save_frequency": 1             # ogni quanto salvare i checkpoint
+        "tensorboard": True,
+        "weightsandbiases": True,
+        "wandb": True,  
+        "tb_logs": "tensorboard_runs",  
+        "save_dir": "checkpoints",      
+        "save_frequency": 1             
     }
 }
 
@@ -74,17 +64,20 @@ if __name__ == "__main__":
     print(f"Training a simple MPL with {train_hyperparameters['optimizer']} and {train_hyperparameters['loss_function']}")
     model = models.simpleMLP(train_hyperparameters['layers'])
     model.to(device)
-    #print(model)
+    print(f"Model architecture: {model}")
 
     # Choose optimizer
     if train_hyperparameters['optimizer'] == 'Adam':
         optimizer = torch.optim.Adam(model.parameters(), lr=train_hyperparameters['learning_rate'])
 
-    writer = SummaryWriter(log_dir=f"runs/MNIST-model='MLP'-lr={train_hyperparameters['learning_rate']}-opt={train_hyperparameters['optimizer']}-loss={train_hyperparameters['loss_function']}-epochs={train_hyperparameters['epochs']}-batch_size={train_hyperparameters['batch_size']}-layers={train_hyperparameters['layers']}")
 
-    accuracies = train_model(model, train_data, eval_data, config, device)
+    losses, accuracies = train_model(model, train_data, eval_data, config, device)
 
-    print(f"Minimum loss = {np.min(accuracies)}")
-    accuracy = evaluate(model, test_data, config["training"]["loss_function"], device=device)
+    print(f"Minimum loss = {np.min(losses)}")
+    print(f"Maximum accuracy = {np.max(accuracies)}")
 
-    print(f"Accuracy on test set: {accuracy}")
+    loss_fn = get_loss(config)
+    test_loss, test_accuracy = evaluate(model, test_data, loss_fn, device=device)
+
+    print(f"Loss on test set: {test_loss}")
+    print(f"Accuracy on test set: {test_accuracy}")

@@ -35,7 +35,7 @@ if __name__ == "__main__":
         "optimizer": "adam", 
         "epochs": 5,
         "batch_size": 64,
-        "resume": False, 
+        "resume": True, 
         "layers": [32*32*3, 64, 128, 64, 64, 10],
         "dataset_name": 'cifar10',
         "loss_function": "crossentropy"
@@ -50,7 +50,7 @@ if __name__ == "__main__":
         "tensorboard": False,
         "weightsandbiases": False,
         "wandb": False, 
-        "tb_logs": "tensorboard_logs",  
+        "tb_logs": "tensorboard_runs",  
         "save_dir": "checkpoints",     
         "save_frequency": 1            
     }
@@ -73,6 +73,7 @@ if __name__ == "__main__":
     # Instance of the model
     print(f"Training an MPL with skip connections using {train_hyperparameters['optimizer']} and {train_hyperparameters['loss_function']}")
     model = models.skipMLP(train_hyperparameters['layers'])
+    print(f"Model architecture: {model}")
     model.to(device)
     #print(model)
 

@@ -22,6 +22,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
+import datetime
 
 from evaluate import evaluate
 
@@ -49,10 +50,12 @@ def init_logging(config):
     for dir_path in directories:
         os.makedirs(dir_path, exist_ok=True)
 
+    timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+
     # Configure wandb
     if config["logging"]["weightsandbiases"]:
         wandb.init(
-            project=config.get("project_name", "deep_learning_project"),
+            project=config["project_name"],
             config=config,
             dir = "/logs/"
         )
@@ -60,18 +63,21 @@ def init_logging(config):
     # Configure TensorBoard
     if config["logging"]["tensorboard"]:
         writer = SummaryWriter(
-            log_dir=f"logs/{config['logging']['tb_logs']}/{config['training']}"
+            log_dir=f"logs/{config['logging']['tb_logs']}/{config['training']}{timestamp}",
         )
+
+        print(f"Saving logs to: logs/{config['logging']['tb_logs']}")
+
 
         return writer
 
     return None
 
 
-def log_epoch(epoch, val_loss, val_accuracy, config, writer = None):
+def log_epoch(epoch, train_loss, val_loss, val_accuracy, config, writer = None):
     """
-    Log validation loss and accuracy in tensorboard and wandb
-    
+    Log training and validation loss and accuracy in tensorboard and wandb
+
     Args:
     	epoch (int): Current epoch
         val_loss (float): loss on validation set
@@ -83,9 +89,15 @@ def log_epoch(epoch, val_loss, val_accuracy, config, writer = None):
         
     """
     if config['logging']['wandb']:
-        wandb.log({"val_loss": val_loss, "val_accuracy": val_accuracy})
+        wandb.log({
+            "train_loss": train_loss,
+            "val_loss": val_loss,
+            "val_accuracy": val_accuracy
+        }, step=epoch)
+        # Logging
 
     if config['logging']['tensorboard']:
+        writer.add_scalar("Loss/Training", train_loss, epoch)
         writer.add_scalar("Loss/Validation", val_loss, epoch)
         writer.add_scalar("Accuracy/Validation", val_accuracy, epoch)
 
@@ -167,6 +179,7 @@ def train_model(model, train_loader, val_loader, config, device):
     """
 
     tb_writer = init_logging(config)
+    
 
     # Set optimizer and loss
     optimizer = get_optimizer(model, config)
@@ -205,6 +218,7 @@ def train_model(model, train_loader, val_loader, config, device):
     for epoch in range(start_epoch, epochs):
         model.train()
         total_train_loss = 0
+        train_loss = 0
 
         for (inputs, targets) in tqdm(train_loader, desc=f"Epoch {epoch+1}/{epochs}"):
             inputs, targets = inputs.to(device), targets.to(device)
@@ -216,16 +230,19 @@ def train_model(model, train_loader, val_loader, config, device):
             optimizer.step()
 
             total_train_loss += loss.item()
+            train_loss = total_train_loss / len(train_loader)
 
         # Validation
-        val_accuracy = evaluate(model, val_loader, loss_fn, device)
+        val_loss, val_accuracy = evaluate(model, val_loader, loss_fn, device)
 
         # Tracking
         val_accuracies.append(val_accuracy)
-        print(val_accuracies)
+        val_losses.append(val_loss)
 
         # Log to wandb and tensorboard
-        #log_epoch(epoch, val_accuracy, config, tb_writer)
+        log_epoch(epoch, train_loss, val_loss, val_accuracy, config, tb_writer)
+
+        
 
         # Checkpointing
         if (epoch + 1) % save_interval == 0  or epoch == epochs-1:
@@ -239,4 +256,4 @@ def train_model(model, train_loader, val_loader, config, device):
             }
             save_checkpoint(checkpoint, checkpoint_dir)
 
-    return (val_accuracies)
+    return (val_losses, val_accuracies)
