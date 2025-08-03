@@ -20,23 +20,23 @@ if __name__ == "__main__":
         "eval_percentage": 0.3,
         "learning_rate": 0.0001,
         "optimizer": "adam", 
-        "epochs": 5,
+        "epochs": 30,
         "batch_size": 64,
         "resume": True, 
-        "layers": [32*32*3, 64, 64, 10],
+        "layers": [64, 64, 64, 10],
         "dataset_name": 'cifar10',
         "loss_function": "crossentropy"
     },
 
     "model": {
         "type": "simple_cnn",  
-        "layers": [32*32*3, 64, 64, 10] 
+        "layers": [64, 64, 64, 10] 
     },
 
     "logging": {
-        "tensorboard": False,
-        "weightsandbiases": False,
-        "wandb": False, 
+        "tensorboard": True,
+        "weightsandbiases": True,
+        "wandb": True, 
         "tb_logs": "tensorboard_runs",  
         "save_dir": "checkpoints",     
         "save_frequency": 1            
@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
     # Instance of the model
     print(f"Training an simple cnn using {train_hyperparameters['optimizer']} and {train_hyperparameters['loss_function']}")
-    model = models.simpleCONV(train_hyperparameters['layers'], 32, 3)
+    model = models.my_CNN(train_hyperparameters['layers'], 32, 3)
     print(f"Model architecture: {model}")
     model.to(device)
     #print(model)

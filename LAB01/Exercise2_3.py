@@ -15,50 +15,52 @@ import models
 
 import numpy as np
 import torch
+import torch.nn.functional as F
+import matplotlib.pyplot as plt
+import random
 
 
 
 def class_activation_map(model, input_image, target_class):
-    """
-    Generate Class Activation Map for a given input image and target class.
-    
-    Args:
-        model (torch.nn.Module): The trained CNN model.
-        input_image (torch.Tensor): The input image tensor.
-        target_class (int): The target class index for which to generate the CAM.
-        
-    Returns:
-        torch.Tensor: The Class Activation Map.
-    """
+
     model.eval()
-    with torch.no_grad():
-        output = model(input_image.unsqueeze(0))
-        output = output[0, target_class]
-        
-        # Get the gradients of the output with respect to the parameters of the model
-        output.backward()
-        
-        # Get the gradients of the last convolutional layer
-        gradients = model.get_last_conv_layer().weight.grad
-        
-        # Global Average Pooling
-        pooled_gradients = torch.mean(gradients, dim=[0, 2, 3])
-        
-        # Multiply each channel in the feature map by the corresponding gradient
-        for i in range(len(pooled_gradients)):
-            model.get_last_conv_layer().weight[i] *= pooled_gradients[i]
-        
-        # Generate the Class Activation Map
-        cam = model.get_last_conv_layer().output.squeeze().cpu().numpy()
-        
-    return cam
+    model.zero_grad()
+    output = model(input_image)
+    if class_idx is None:
+        class_idx = output.argmax(dim=1).item()
+
+    output[:, class_idx].backward()
+
+    activations = model.get_activation()
+
+    gradients = torch.autograd.grad(outputs=output[:, class_idx], inputs=activations,
+                                    grad_outputs=torch.ones_like(output[:, class_idx]), retain_graph=True)[0]
+    weights = torch.mean(gradients, dim=(2, 3), keepdim=True)  # Media su tutte le dimensioni spaziali
+    cam = torch.sum(weights * activations, dim=1, keepdim=True)  # Somma ponderata delle attivazioni
+
+    cam = F.relu(cam)
+
+
+    cam = cam - cam.min()
+    cam = cam / cam.max()
+
+    cam = F.interpolate(cam, size=input_image.shape[2:], mode='bilinear', align_corners=False)
+
+    cam = cam.squeeze().cpu().detach().numpy()
+
+
+    input_image = input_image.squeeze().cpu().detach().numpy()   
+    plt.imshow(input_image, cmap='gray')
+    plt.imshow(cam, cmap='jet', alpha=0.5)
+    plt.colorbar()
+    plt.show()
 
 if __name__ == "__main__":
 
     config = {
     "project_name": "deep_learning_project",  
 
-    "dataset_name": "CIFAR10", 
+    "dataset_name": "Imagenette", 
 
     "training": {
         "eval_percentage": 0.3,
@@ -67,14 +69,14 @@ if __name__ == "__main__":
         "epochs": 5,
         "batch_size": 64,
         "resume": True, 
-        "layers": [32*32*3, 64, 64, 10],
+        "layers": [64, 64, 64, 10],
         "dataset_name": 'cifar10',
         "loss_function": "crossentropy"
     },
 
     "model": {
         "type": "simple_cnn",  
-        "layers": [32*32*3, 64, 64, 10] 
+        "layers": [64, 64, 64, 10] 
     },
 
     "logging": {
@@ -89,8 +91,6 @@ if __name__ == "__main__":
 
 
     train_hyperparameters = config["training"]
-
-
     
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"Training on {device}")
@@ -101,7 +101,7 @@ if __name__ == "__main__":
 
     # Instance of the model
     print(f"Training an simple cnn using {train_hyperparameters['optimizer']} and {train_hyperparameters['loss_function']}")
-    model = models.simpleCONV(train_hyperparameters['layers'], 32, 3)
+    model = models.my_CNN(train_hyperparameters['layers'], 32, 3)
     print(f"Model architecture: {model}")
     model.to(device)
     #print(model)
@@ -117,3 +117,15 @@ if __name__ == "__main__":
     accuracy = evaluate(model, test_data, config["training"]["loss_function"], device=device)
 
     print(f"Accuracy on test set: {accuracy}")
+
+    num_samples = 15
+
+    random_indices = random.sample(range(len(test_data)), num_samples)
+
+    for idx in random_indices:
+        image, label = test_data[idx]
+        image = image.unsqueeze(0).to(device)
+        
+        class_activation_map(model, image, label.item())
+
+    
