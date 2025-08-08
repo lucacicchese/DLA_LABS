@@ -14,7 +14,7 @@ if __name__ == "__main__":
         "training": {
             "learning_rate": 0.001,
             "optimizer": "adam",
-            "epochs": 10000,
+            "epochs": 2000,
             "batch_size": 64,
             "resume": False,
             "layers": [4, 64, 64, 2],

@@ -2,13 +2,13 @@ import torch.nn as nn
 import torch
 
 class Policy(nn.Module):
-    def __init__(self, input_size, actions):
+    def __init__(self, input_size, actions, softmax=True):
         super(Policy, self).__init__()
         self.layers = nn.Sequential(
             nn.Linear(input_size, 128),
             nn.ReLU(),
             nn.Linear(128, actions),
-            nn.Softmax(dim=-1)
+            nn.Softmax(dim=-1) if softmax else nn.Identity()
         )
 
     def forward(self, x):

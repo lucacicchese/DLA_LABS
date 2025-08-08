@@ -33,12 +33,19 @@ def run_episode(env, policy):
 
     log_probs = torch.stack(log_probs)
     log_probs = log_probs.squeeze(-1)
+
+    observations = torch.tensor(observations, dtype=torch.float32)
+    print (log_probs.shape, observations.shape)
     return observations, actions, log_probs, rewards
 
 
-def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_freq=20):
+def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_freq=20, standardize=True, value_function=None, device=torch.device("cpu")):
+    torch.autograd.set_detect_anomaly(True)
 
-    opt = torch.optim.Adam(policy.parameters(), lr=0.001)
+    policy_opt = torch.optim.Adam(policy.parameters(), lr=0.001)
+    if value_function is not None:
+        value_opt = torch.optim.Adam(value_function.parameters(), lr=0.001)
+        mse_loss = torch.nn.MSELoss()
     running_rewards = [0.0]
     policy.train()
 
@@ -57,18 +64,40 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_f
         for t in reversed(rewards):
             G = t + gamma * G
             returns.insert(0, G)
+
             
         returns = torch.tensor(returns, dtype=torch.float32)
 
         running_rewards.append(0.05 * returns[0].item() + 0.95 * running_rewards[-1])
-        returns = (returns - returns.mean()) / (returns.std() + 1e-8)
-        
 
-        opt.zero_grad()
+        if value_function is not None:
+            # Clone returns for value function training to avoid shared tensors
+            returns_for_value = returns.clone().detach()
+            
+            values = value_function(observations).squeeze(-1)
+            values_loss = mse_loss(values, returns_for_value)
+            
+            value_opt.zero_grad()
+            values_loss.backward()
+            value_opt.step()
+
+            # Compute baseline after value function update
+            with torch.no_grad():
+                baseline = value_function(observations).squeeze(-1)
+            
+            # Create advantages (new tensor, not in-place modification)
+            advantages = returns - baseline
+            returns = advantages
+
+        if standardize:
+            returns = (returns - returns.mean()) / (returns.std() + 1e-8)
+
+        policy_opt.zero_grad()
         loss = (-log_probs * returns).mean()
-        #print(f"Loss: {loss.item()}")
+
+        print(f"Loss: {loss.item()}")
         loss.backward()
-        opt.step()
+        policy_opt.step()
 
         total_reward = sum(rewards)
 
