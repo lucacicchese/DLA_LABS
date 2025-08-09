@@ -1,5 +1,6 @@
 from reinforce import reinforce
 import models
+import test
 
 import gymnasium as gym
 import torch
@@ -50,7 +51,8 @@ if __name__ == "__main__":
 
     value = models.Policy(input_size=env.observation_space.shape[0], actions=1, softmax=False).to(device)
 
-    rewards = reinforce(value, env, env_render=env_render, gamma=0.99, num_episodes=config['training']['epochs'], value_function=value, device=device)
+    #rewards = test.reinforce_with_baseline(policy=value, env=env, env_render=env_render, gamma=0.99, num_episodes=config['training']['epochs'], value_function=value)
+    rewards = reinforce(policy=policy, env=env, env_render=env_render, gamma=0.99, num_episodes=config['training']['epochs'], value_function=value)
 
     env.close()
     env_render.close()

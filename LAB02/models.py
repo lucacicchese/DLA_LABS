@@ -1,18 +1,22 @@
 import torch.nn as nn
 import torch
+import torch.nn.functional as F
 
 class Policy(nn.Module):
     def __init__(self, input_size, actions, softmax=True):
         super(Policy, self).__init__()
+        self.softmax = softmax
         self.layers = nn.Sequential(
             nn.Linear(input_size, 128),
             nn.ReLU(),
-            nn.Linear(128, actions),
-            nn.Softmax(dim=-1) if softmax else nn.Identity()
+            nn.Linear(128, actions)
         )
 
     def forward(self, x):
-        return self.layers(x)
+        x = self.layers(x)
+        if self.softmax:
+            x = F.softmax(x, dim=-1)
+        return x
     
     def do_action(self, state, device):
         state = torch.from_numpy(state).float.unsqueeze(0).to(device)

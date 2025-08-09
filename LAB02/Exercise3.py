@@ -41,8 +41,9 @@ if __name__ == "__main__":
     env_render = gym.make('LunarLander-v3', render_mode='human')
 
     policy = models.Policy(input_size=env.observation_space.shape[0], actions=env.action_space.n).to(device)
+    value_function = models.Policy(input_size=env.observation_space.shape[0], actions=1, softmax=False).to(device)
 
-    rewards = reinforce(policy, env, env_render=env_render, gamma=0.99, num_episodes=config['training']['epochs'])
+    rewards = reinforce(policy, env, env_render=env_render, gamma=0.99, num_episodes=config['training']['epochs'], value_function=value_function, standardize=True)
 
     print("Training completed. Final running reward:", rewards[-1])
     env.close()

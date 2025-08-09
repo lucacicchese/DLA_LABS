@@ -35,17 +35,22 @@ def run_episode(env, policy):
     log_probs = log_probs.squeeze(-1)
 
     observations = torch.tensor(observations, dtype=torch.float32)
-    print (log_probs.shape, observations.shape)
     return observations, actions, log_probs, rewards
 
 
 def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_freq=20, standardize=True, value_function=None, device=torch.device("cpu")):
-    torch.autograd.set_detect_anomaly(True)
+    #torch.autograd.set_detect_anomaly(True)
+
+    print(policy is value_function)
 
     policy_opt = torch.optim.Adam(policy.parameters(), lr=0.001)
+    policy.train()
+    
     if value_function is not None:
         value_opt = torch.optim.Adam(value_function.parameters(), lr=0.001)
         mse_loss = torch.nn.MSELoss()
+        value_function.train()
+
     running_rewards = [0.0]
     policy.train()
 
@@ -74,7 +79,11 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_f
             # Clone returns for value function training to avoid shared tensors
             returns_for_value = returns.clone().detach()
             
-            values = value_function(observations).squeeze(-1)
+            values = value_function(observations)
+            values = values.view(-1)
+            returns_for_value = returns_for_value.view(-1)
+
+
             values_loss = mse_loss(values, returns_for_value)
             
             value_opt.zero_grad()
@@ -83,7 +92,8 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_f
 
             # Compute baseline after value function update
             with torch.no_grad():
-                baseline = value_function(observations).squeeze(-1)
+                baseline = value_function(observations)
+                baseline = baseline.view(-1)
             
             # Create advantages (new tensor, not in-place modification)
             advantages = returns - baseline
@@ -92,10 +102,13 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_f
         if standardize:
             returns = (returns - returns.mean()) / (returns.std() + 1e-8)
 
+
         policy_opt.zero_grad()
+        log_probs = log_probs.view(-1)
+        returns = returns.view(-1)
+
         loss = (-log_probs * returns).mean()
 
-        print(f"Loss: {loss.item()}")
         loss.backward()
         policy_opt.step()
 
