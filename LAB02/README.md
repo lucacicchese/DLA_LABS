@@ -38,32 +38,32 @@ LAB02
 │
 │   exercise_1.py
 │   exercise_2.py
-│   exercise_3_1.py
+│   exercise_3.py
 │   data.py
 │   evaluate.py
-│   train.py
+│   models.py
+│   reinforce.py
 
  ```
 
 ## Environment
 
-The testing environment has been managed with anaconda:
-`conda create -n DLA -c conda-forge jupyterlab ipython matplotlib
-scikit-learn tqdm pytorch torchvision tensorboard standard-imghdr`
+The testing environment has been managed with anaconda, it can be created by simply running:
+`conda env create -f environment.yml`
 
-## Exercise 1 - Reinforce Implementation
-
-### Implementation
-
-### Results
-
-## Exercise 2 -
+## Exercise 1 - Reinforce on cartpole
 
 ### Implementation
 
 ### Results
 
-## Exercise 3.1 -
+## Exercise 2 - Reinforce + baseline on cartpole
+
+### Implementation
+
+### Results
+
+## Exercise 3.1 - Reinforce + baseline on Lunar Lander
 
 ### Implementation
 

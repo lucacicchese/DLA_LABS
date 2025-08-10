@@ -37,14 +37,12 @@ LAB01
 │   
 └───utils   
 │
-│   exercise_1_1.py
-│   exercise_1_2.py
-│   exercise_2_1.py
-│   exercise_2_2.py
-│   exercise_3_3.py
+│   exercise_1.py
+│   exercise_2.py
+│   exercise_3.py
 │   data.py
 │   evaluate.py
-│   train.py
+│   training.py
 
  ```
 
@@ -54,31 +52,19 @@ The testing environment has been managed with anaconda:
 `conda create -n DLA -c conda-forge jupyterlab ipython matplotlib
 scikit-learn tqdm pytorch torchvision tensorboard standard-imghdr`
 
-## Exercise 1.1 -
+## Exercise 1 - OOD Detection pipeline
 
 ### Implementation
 
 ### Results
 
-## Exercise 1.2 -
+## Exercise 2 - Enhancing Robustness to Adversarial Attacks
 
 ### Implementation
 
 ### Results
 
-## Exercise 2.1 -
-
-### Implementation
-
-### Results
-
-## Exercise 2.2 -
-
-### Implementation
-
-### Results
-
-## Exercise 3.3 -
+## Exercise 3.3 - Targeted Adversarial Attacks
 
 ### Implementation
 
