@@ -27,6 +27,8 @@ def evaluate(model, data_loader, loss_fn, device):
     Returns:
         float: Accuracy of the model on dataset
     """
+    model.to(device)
+    loss_fn.to(device)
     model.eval()
     predictions = []
     ground_truth = [] 
@@ -36,6 +38,7 @@ def evaluate(model, data_loader, loss_fn, device):
 
     for (value, label) in tqdm(data_loader, desc='Evaluating', leave=True):
         value = value.to(device)
+        label = label.to(device)
 
         output = model(value)
         loss = loss_fn(output, label)
@@ -43,7 +46,7 @@ def evaluate(model, data_loader, loss_fn, device):
         total_loss += loss.item() 
         total_samples += value.size(0)
 
-        prediction = torch.argmax(model(value), dim=1)
+        prediction = torch.argmax(output, dim=1)
 
         ground_truth = np.append(ground_truth, label.cpu().numpy())  
         predictions = np.append(predictions, prediction.detach().cpu().numpy()) 

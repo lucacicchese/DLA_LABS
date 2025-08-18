@@ -17,11 +17,9 @@
 | LAB02 Exercise 1 | ✅  |  |[Go to section](LAB02/README.md)|
 | LAB02 Exercise 2 | ✅  |  |[Go to section](LAB02/README.md)|
 | LAB02 Exercise 3.1 | ✅  |  |[Go to section](LAB02/README.md)|
-| LAB04 Exercise 1.1 |  | 🔁 |[Go to section](LAB04/README.md)|
-| LAB04 Exercise 1.2 |  | 🔁 |[Go to section](LAB04/README.md)|
-| LAB04 Exercise 2.1 |  | 🔁 |[Go to section](LAB04/README.md)|
-| LAB04 Exercise 2.2 |  | 🔁 |[Go to section](LAB04/README.md)|
-| LAB04 Exercise 3.3 |  | 🔁 |[Go to section](LAB04/README.md)|
+| LAB03 Exercise 1 |  | 🔁 |[Go to section](LAB03/README.md)|
+| LAB03 Exercise 2 |  | 🔁 |[Go to section](LAB03/README.md)|
+| LAB03 Exercise 3.2 |  | 🔁 |[Go to section](LAB03/README.md)|
 
 ## File Structure
 
@@ -35,3 +33,5 @@ Each lab has its own folder called LAB**XX** containing
 - Professor Bagdanov's jupyter notebooks
 - _Deep Learning with PyTorch Step-by-Step A Beginner’s Guide_ by **Daniel
 Voigt Godoy**
+- [Gymnasium documentation](https://gymnasium.farama.org)
+- **TODO ADD PAPERS**
