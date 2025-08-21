@@ -3,7 +3,7 @@ import gymnasium as gym
 from torch.utils.tensorboard import SummaryWriter
 
 
-def run_episode(env, policy):
+def run_episode(env, policy, device=torch.device("cpu")):
 
     observations = []
     actions = []
@@ -14,7 +14,7 @@ def run_episode(env, policy):
 
     while not done:
 
-        obs_tensor = torch.tensor(obs, dtype=torch.float32).unsqueeze(0)
+        obs_tensor = torch.tensor(obs, dtype=torch.float32, device=device).unsqueeze(0)
         
         action_probs = policy(obs_tensor)
 
@@ -32,21 +32,23 @@ def run_episode(env, policy):
 
 
     log_probs = torch.stack(log_probs)
-    log_probs = log_probs.squeeze(-1)
+    log_probs = log_probs.squeeze(-1).to(device)
 
-    observations = torch.tensor(observations, dtype=torch.float32)
+    observations = torch.tensor(observations, dtype=torch.float32, device=device)
     return observations, actions, log_probs, rewards
 
 
 def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_freq=20, standardize=True, value_function=None, device=torch.device("cpu")):
     #torch.autograd.set_detect_anomaly(True)
 
-    print(policy is value_function)
+    #print(policy is value_function)
+    policy.to(device)
 
     policy_opt = torch.optim.Adam(policy.parameters(), lr=0.001)
     policy.train()
     
     if value_function is not None:
+        value_function.to(device)
         value_opt = torch.optim.Adam(value_function.parameters(), lr=0.001)
         mse_loss = torch.nn.MSELoss()
         value_function.train()
@@ -63,7 +65,7 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_f
         G = 0
         returns = []
         
-        (observations, actions, log_probs, rewards) = run_episode(env, policy)
+        (observations, actions, log_probs, rewards) = run_episode(env, policy, device)
 
 
         for t in reversed(rewards):
@@ -134,7 +136,7 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_f
         if not episode % 100:
             if env_render:
                 policy.eval()
-                run_episode(env_render, policy)
+                run_episode(env_render, policy, device)
                 policy.train()
             print(f'Running reward: {running_rewards[-1]}')
     

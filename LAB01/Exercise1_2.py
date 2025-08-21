@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     "training": {
         "eval_percentage": 0.3,
-        "learning_rate": 0.0001,
+        "learning_rate": 0.001,
         "optimizer": "adam", 
         "epochs": 20,
         "batch_size": 64,

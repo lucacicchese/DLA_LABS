@@ -1,6 +1,6 @@
 # Libraries
 from dataset import load_dataset
-from training import train_model
+from training import train_model, get_loss
 from evaluate import evaluate
 import models
 
@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
     "training": {
         "eval_percentage": 0.3,
-        "learning_rate": 0.0001,
+        "learning_rate": 0.001,
         "optimizer": "adam", 
         "epochs": 30,
         "batch_size": 64,
@@ -69,6 +69,8 @@ if __name__ == "__main__":
     accuracies = train_model(model, train_data, eval_data, config, device)
 
     print(f"Minimum loss = {np.min(accuracies)}")
-    accuracy = evaluate(model, test_data, config["training"]["loss_function"], device=device)
+
+    loss_fn = get_loss(config['training']['loss_function'])
+    avg_loss, accuracy = evaluate(model, test_data, loss_fn, device=device)
 
     print(f"Accuracy on test set: {accuracy}")
