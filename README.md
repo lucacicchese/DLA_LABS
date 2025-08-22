@@ -17,7 +17,7 @@
 | LAB02 Exercise 1 | ✅  |  |[Go to section](LAB02/README.md)|
 | LAB02 Exercise 2 | ✅  |  |[Go to section](LAB02/README.md)|
 | LAB02 Exercise 3.1 | ✅  |  |[Go to section](LAB02/README.md)|
-| LAB03 Exercise 1 |  | 🔁 |[Go to section](LAB03/README.md)|
+| LAB03 Exercise 1 | ✅ |  |[Go to section](LAB03/README.md)|
 | LAB03 Exercise 2 |  | 🔁 |[Go to section](LAB03/README.md)|
 | LAB03 Exercise 3.2 |  | 🔁 |[Go to section](LAB03/README.md)|
 

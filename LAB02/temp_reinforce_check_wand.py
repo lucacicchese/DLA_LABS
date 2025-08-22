@@ -1,52 +1,17 @@
-import torch
-import gymnasium as gym
-from torch.utils.tensorboard import SummaryWriter
 import os
-from gym.wrappers import RecordVideo
+import torch
 import wandb
+from torch.utils.tensorboard import SummaryWriter
+from torch.optim import Adam
+from gym.wrappers import RecordVideo
 
 
-def run_episode(env, policy, device=torch.device("cpu")):
+def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_freq=20, standardize=True, value_function=None, device=torch.device("cpu"), record=False, checkpoint_freq=10, checkpoint_dir="logs/checkpoints", wandb_project="reinforce_cartpole"):
 
-    observations = []
-    actions = []
-    log_probs = []
-    rewards = []
-    obs, _ = env.reset(seed=123)
-    done = False
-
-    while not done:
-
-        obs_tensor = torch.tensor(obs, dtype=torch.float32, device=device).unsqueeze(0)
-        
-        action_probs = policy(obs_tensor)
-
-        dist = torch.distributions.Categorical(action_probs)
-        action = dist.sample()
-        log_prob = dist.log_prob(action)
-        next_obs, reward, terminated, truncated, _ = env.step(action.item())
-        done = terminated or truncated
-
-        observations.append(obs)
-        actions.append(action.item())
-        log_probs.append(log_prob)
-        rewards.append(reward)
-        obs = next_obs
-
-
-    log_probs = torch.stack(log_probs)
-    log_probs = log_probs.squeeze(-1).to(device)
-
-    observations = torch.tensor(observations, dtype=torch.float32, device=device)
-    return observations, actions, log_probs, rewards
-
-
-def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_freq=20, standardize=True, value_function=None, device=torch.device("cpu"), record=False, config = None):
-
-    if config is not None and config["logging"]["wandb"]:
-        wandb.init(project=config["project_name"])
-        wandb.watch(policy, log="all")
-
+    # Initialize wandb
+    wandb.init(project=wandb_project)
+    wandb.watch(policy, log="all")
+    
     if record:
         video_dir = "cartpole_videos"
         os.makedirs(video_dir, exist_ok=True)
@@ -58,21 +23,21 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_f
         )
 
     policy.to(device)
-
-    policy_opt = torch.optim.Adam(policy.parameters(), lr=0.001)
+    policy_opt = Adam(policy.parameters(), lr=0.001)
     policy.train()
     
     if value_function is not None:
         value_function.to(device)
-        value_opt = torch.optim.Adam(value_function.parameters(), lr=0.001)
+        value_opt = Adam(value_function.parameters(), lr=0.001)
         mse_loss = torch.nn.MSELoss()
         value_function.train()
 
-    if os.path.exists(config["logging"]["save_dir"]):
-        checkpoint_files = os.listdir(config["logging"]["save_dir"])
+    # Check if checkpoint exists and load it
+    if os.path.exists(checkpoint_dir):
+        checkpoint_files = os.listdir(checkpoint_dir)
         if checkpoint_files:
-            latest_checkpoint = f"{config["project_name"]}_latest_checkpoint.pth"
-            checkpoint_path = os.path.join(config["logging"]["save_dir"], latest_checkpoint)
+            latest_checkpoint = max(checkpoint_files, key=lambda x: int(x.split('_')[1].split('.')[0]))  # Assuming filename format like 'checkpoint_100.pth'
+            checkpoint_path = os.path.join(checkpoint_dir, latest_checkpoint)
             checkpoint = torch.load(checkpoint_path, map_location=device)
             policy.load_state_dict(checkpoint['policy_state_dict'])
             policy_opt.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -82,10 +47,8 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_f
             print(f"Checkpoint {latest_checkpoint} loaded.")
         else:
             print("No checkpoint found. Starting from scratch.")
-
+    
     running_rewards = [0.0]
-    policy.train()
-
     writer = SummaryWriter(log_dir="runs/reinforce_cartpole")
 
     for episode in range(num_episodes):
@@ -97,16 +60,16 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_f
         
         (observations, actions, log_probs, rewards) = run_episode(env, policy, device)
 
-
         for t in reversed(rewards):
             G = t + gamma * G
             returns.insert(0, G)
 
-            
         returns = torch.tensor(returns, dtype=torch.float32)
-        
+
+        # Calculate total reward for this episode
         ep_reward = sum(rewards)
 
+        # Update the running reward (using total episode reward)
         running_rewards.append(0.05 * ep_reward + 0.95 * running_rewards[-1])
 
         if value_function is not None:
@@ -116,7 +79,6 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_f
             values = value_function(observations)
             values = values.view(-1)
             returns_for_value = returns_for_value.view(-1)
-
 
             values_loss = mse_loss(values, returns_for_value)
             
@@ -136,7 +98,6 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_f
         if standardize:
             returns = (returns - returns.mean()) / (returns.std() + 1e-8)
 
-
         policy_opt.zero_grad()
         log_probs = log_probs.view(-1)
         returns = returns.view(-1)
@@ -146,19 +107,21 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_f
         loss.backward()
         policy_opt.step()
 
-        if config is not None and config["logging"]["wandb"]:
+        # Check if the agent has solved the environment
+        if running_rewards[-1] >= 195:
+            print(f"The agent won! Environment solved in {episode + 1} episodes.")
+            break
+
+        if episode % check_freq == 0:
+            print(f"Episode {episode + 1}, Total Reward: {ep_reward}, Running Avg: {running_rewards[-1]}")
+
+            # Log to wandb
             wandb.log({
                 "Episode": episode + 1,
                 "Total Reward": ep_reward,
                 "Running Avg Reward": running_rewards[-1],
                 "Loss": loss.item()
             })
-
-
-
-
-        if episode % check_freq == 0:
-            print(f"Episode {episode + 1}, Total Reward: {ep_reward}, Running Avg: {running_rewards[-1]}")
 
             # Average total reward for the episode
             avg_reward = ep_reward / len(rewards)
@@ -168,17 +131,12 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_f
 
             writer.add_scalar("Reward/Episode", avg_reward, episode)
             writer.add_scalar("Length/Episode", avg_length, episode)
-
             writer.add_scalar("Reward/Running_Avg", running_rewards[-1], episode)
 
-        if running_rewards[-1] >= 195:
-            print(f"The agent won! Environment solved in {episode + 1} episodes.")
-            break
-
-        if episode % config["logging"]["save_frequency"] == 0:
-            checkpoint_path = os.path.join(config["logging"]["save_dir"], f"{config['project_name']}_checkpoint_{episode + 1}.pth")
-            latest_checkpoint_path = os.path.join(config["logging"]["save_dir"], f"{config['project_name']}_latest_checkpoint.pth")
-            os.makedirs(config["logging"]["save_dir"], exist_ok=True)
+        # Save checkpoint every 'checkpoint_freq' episodes
+        if episode % checkpoint_freq == 0:
+            checkpoint_path = os.path.join(checkpoint_dir, f"checkpoint_{episode + 1}.pth")
+            os.makedirs(checkpoint_dir, exist_ok=True)
 
             checkpoint = {
                 'episode': episode,
@@ -188,7 +146,6 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_f
                 'value_optimizer_state_dict': value_opt.state_dict() if value_function else None
             }
             torch.save(checkpoint, checkpoint_path)
-            torch.save(checkpoint, latest_checkpoint_path)
             print(f"Checkpoint saved at {checkpoint_path}")
 
         if not episode % 100:
@@ -196,8 +153,10 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_f
                 policy.eval()
                 run_episode(env_render, policy, device)
                 policy.train()
-            #print(f'Running reward: {running_rewards[-1]}')
-    
+            print(f'Running reward: {running_rewards[-1]}')
+
+    # Finish wandb logging
+    wandb.finish()
     
     policy.eval()
     return running_rewards

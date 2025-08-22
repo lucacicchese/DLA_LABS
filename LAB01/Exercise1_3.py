@@ -12,7 +12,7 @@ import torch
 if __name__ == "__main__":
 
     config = {
-    "project_name": "deep_learning_project",  
+    "project_name": "LAB01_Exercise1_3",  
 
     "dataset_name": "CIFAR10", 
 

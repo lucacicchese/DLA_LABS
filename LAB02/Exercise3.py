@@ -9,7 +9,7 @@ import torch.nn.functional as F
 if __name__ == "__main__":
 
     config = {
-        "project_name": "LAB02_Exercise1",
+        "project_name": "LAB02_Exercise3",
         "dataset_name": "CartPole-v1",
         "training": {
             "learning_rate": 0.001,

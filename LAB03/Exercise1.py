@@ -6,6 +6,8 @@ import torch
 from torch.utils.data import DataLoader
 import numpy as np
 import random
+import wandb
+from torch.utils.tensorboard import SummaryWriter
 
 def extract_features(model, feature_extractor, dataset, device='cpu'):
     features = []
@@ -16,7 +18,7 @@ def extract_features(model, feature_extractor, dataset, device='cpu'):
         label = example['label']
 
         output_features = feature_extractor(text)
-        cls_token_vector = output_features[0][0]  # Get the [CLS] token vector
+        cls_token_vector = output_features[0][0]  
         features.append(cls_token_vector)
         labels.append(label)
 
@@ -25,20 +27,32 @@ def extract_features(model, feature_extractor, dataset, device='cpu'):
 
 
 config ={
-
+    "project_name": "LAB03_Exercise1",
     "dataset_name": "rotten_tomatoes",
     "model_name": "distilbert-base-uncased",
     "model_max_length": 512,
     "batch_size": 16,
     "num_epochs": 5,
     "learning_rate": 2e-5,
+
+    "logging": {
+        "tensorboard": True,
+        "weightsandbiases": True,
+        "wandb": True,  
+        "tb_logs": "tensorboard_runs",  
+        "save_dir": "checkpoints",      
+        "save_frequency": 1             
+    }
 }
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-dataset_name = "rotten_tomatoes"
-model_name = "distilbert-base-uncased"
-feature_extractor = pipeline("feature-extraction", model=model_name, framework="pt")
+if config["logging"]["wandb"]: 
+    wandb.init(project="svm-text-classifier", config=config)
+if config["logging"]["tensorboard"]:
+    writer = SummaryWriter(log_dir=f"logs/{config['logging']['tb_logs']}")
+
+feature_extractor = pipeline("feature-extraction", model=config['model_name'], framework="pt")
 
 # Exercise 1.1
 print(f"Loading dataset: {config['dataset_name']}")
@@ -62,27 +76,43 @@ train_features, train_labels = extract_features(model, feature_extractor, traini
 validation_features, validation_labels = extract_features(model, feature_extractor, validation_split, device)
 test_features, test_labels = extract_features(model, feature_extractor, test_split, device)
 
+print("Train feature shape:", train_features.shape)
+print("Validation feature shape:", validation_features.shape)
+print("Test feature shape:", test_features.shape)
+
+
 print(f"Starting training classifier on extracted features")
 classifier = SVC()
 classifier.fit(train_features, train_labels)
 
+
 print("Classifier training complete.")
 print("Evaluating classifier...")
 validation_predictions = classifier.predict(validation_features)
-validation_predictions = validation_predictions.reshape(-1, 1)
-validation_labels = validation_labels.reshape(-1, 1)
+#validation_predictions = validation_predictions.reshape(-1, 1)
+#validation_labels = validation_labels.reshape(-1, 1)
 print("Validation_predictions shape:", validation_predictions.shape)
 print("Validation_labels shape:", validation_labels.shape)
 accuracy = classifier.score(validation_predictions, validation_labels)
 print(f"Validation accuracy: {accuracy:.2f}")
-print("Evaluating on test set...")
 
+if config["logging"]["wandb"]:
+    wandb.log({"val_accuracy": accuracy})
+if config["logging"]["tensorboard"]:
+    writer.add_scalar("Accuracy/Validation", accuracy, 0)
+
+
+print("Evaluating on test set...")
 test_predictions = classifier.predict(test_features)
-test_predictions = test_predictions.reshape(-1, 1)
-test_labels = test_labels.reshape(-1, 1)
+#test_predictions = test_predictions.reshape(-1, 1)
+#test_labels = test_labels.reshape(-1, 1)
 print("Test_predictions shape:", test_predictions.shape)
 print("Test_labels shape:", test_labels.shape)
 accuracy = classifier.score(test_predictions, test_labels)
 print(f"Test accuracy: {accuracy:.2f}")
 
 
+if config["logging"]["wandb"]:
+    wandb.log({"test_accuracy": accuracy})
+if config["logging"]["tensorboard"]:
+    writer.add_scalar("Accuracy/Test", accuracy, 0)
