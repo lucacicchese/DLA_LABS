@@ -48,12 +48,12 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_f
         wandb.watch(policy, log="all")
 
     if record:
-        video_dir = "cartpole_videos"
+        video_dir = "assets/videos"
         os.makedirs(video_dir, exist_ok=True)
         env = RecordVideo(
             env,
-            video_folder="assets/videos",
-            episode_trigger=lambda episode_id: episode_id % 200 == 0,
+            video_folder=video_dir,
+            episode_trigger=lambda episode_id: episode_id % 50 == 0,
             name_prefix="reinforce"
         )
 
@@ -69,10 +69,9 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_f
         value_function.train()
 
     if os.path.exists(config["logging"]["save_dir"]):
-        checkpoint_files = os.listdir(config["logging"]["save_dir"])
-        if checkpoint_files:
-            latest_checkpoint = f"{config["project_name"]}_latest_checkpoint.pth"
-            checkpoint_path = os.path.join(config["logging"]["save_dir"], latest_checkpoint)
+        latest_checkpoint = f"{config['project_name']}_latest_checkpoint.pth"
+        checkpoint_path = os.path.join(config["logging"]["save_dir"], latest_checkpoint)
+        if os.path.exists(checkpoint_path):
             checkpoint = torch.load(checkpoint_path, map_location=device)
             policy.load_state_dict(checkpoint['policy_state_dict'])
             policy_opt.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -189,7 +188,7 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_f
             }
             torch.save(checkpoint, checkpoint_path)
             torch.save(checkpoint, latest_checkpoint_path)
-            print(f"Checkpoint saved at {checkpoint_path}")
+            #print(f"Checkpoint saved at {checkpoint_path}")
 
         if not episode % 100:
             if env_render:

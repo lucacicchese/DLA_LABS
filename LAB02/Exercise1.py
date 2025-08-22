@@ -37,12 +37,12 @@ if __name__ == "__main__":
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"Training on {device}")
 
-    env = gym.make('CartPole-v1')
+    env = gym.make('CartPole-v1', render_mode='rgb_array')
     env_render = gym.make('CartPole-v1', render_mode='human')
 
     policy = models.Policy(input_size=env.observation_space.shape[0], actions=env.action_space.n).to(device)
 
-    rewards = reinforce(policy, env, env_render=env_render, gamma=0.99, num_episodes=config['training']['epochs'])
+    rewards = reinforce(policy, env, env_render=env_render, gamma=0.99, num_episodes=config['training']['epochs'], config=config)
 
     print("Training completed. Final running reward:", rewards[-1])
     env.close()
