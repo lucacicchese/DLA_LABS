@@ -1,7 +1,7 @@
 from datasets import load_dataset, get_dataset_split_names
 from transformers import AutoTokenizer, AutoModel, pipeline
 from sklearn.svm import SVC
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, accuracy_score
 import torch
 from torch.utils.data import DataLoader
 import numpy as np
@@ -12,25 +12,27 @@ from torch.utils.tensorboard import SummaryWriter
 def extract_features(model, feature_extractor, dataset, config, device='cpu'):
     features = []
     labels = []
+    print(config['batch_size'])
 
     dataloader = DataLoader(dataset, batch_size=config['batch_size'], shuffle=False)
 
     for batch in dataloader:
         texts = batch['text']
-        labels = batch['label']
+        batch_labels = batch['label']
 
         output_features = feature_extractor(texts)
 
         cls_token_vector = []
         for out in output_features:  
-            cls_vector = out[0]  
+            cls_vector = out[0][0]  
+            #print("CLS vector shape:", np.array(cls_vector).shape)
             cls_token_vector.append(cls_vector)
 
         
         features.extend(cls_token_vector)
-        labels.extend(labels)
+        labels.extend(batch_labels)
 
-    return np.array(features), np.array(labels)
+    return np.stack(features), np.array(labels)
 
 
 
@@ -80,9 +82,9 @@ test_split = dataset['test']
 print(f"Training split size: {len(training_split)}, Validation split size: {len(validation_split)}, Test split size: {len(test_split)}")
 
 
-train_features, train_labels = extract_features(model, feature_extractor, training_split, device, config)
-validation_features, validation_labels = extract_features(model, feature_extractor, validation_split, device, config)
-test_features, test_labels = extract_features(model, feature_extractor, test_split, device, config)
+train_features, train_labels = extract_features(model, feature_extractor, training_split, config, device)
+validation_features, validation_labels = extract_features(model, feature_extractor, validation_split, config, device)
+test_features, test_labels = extract_features(model, feature_extractor, test_split, config, device)
 
 print("Train feature shape:", train_features.shape)
 print("Validation feature shape:", validation_features.shape)
@@ -101,13 +103,17 @@ validation_predictions = classifier.predict(validation_features)
 #validation_labels = validation_labels.reshape(-1, 1)
 print("Validation_predictions shape:", validation_predictions.shape)
 print("Validation_labels shape:", validation_labels.shape)
-accuracy = classifier.score(validation_predictions, validation_labels)
-print(f"Validation accuracy: {accuracy:.2f}")
+#accuracy = classifier.score(validation_predictions, validation_labels)
+#print(f"Validation accuracy: {accuracy:.2f}")
+print(classification_report(validation_labels, validation_predictions))
+
+val_acc = accuracy_score(validation_labels, validation_predictions)
+print(f"Validation Accuracy: {val_acc:.2f}")
 
 if config["logging"]["wandb"]:
-    wandb.log({"val_accuracy": accuracy})
+    wandb.log({"val_accuracy": val_acc})
 if config["logging"]["tensorboard"]:
-    writer.add_scalar("Accuracy/Validation", accuracy, 0)
+    writer.add_scalar("Accuracy/Validation", val_acc, 0)
 
 
 print("Evaluating on test set...")
@@ -116,11 +122,14 @@ test_predictions = classifier.predict(test_features)
 #test_labels = test_labels.reshape(-1, 1)
 print("Test_predictions shape:", test_predictions.shape)
 print("Test_labels shape:", test_labels.shape)
-accuracy = classifier.score(test_predictions, test_labels)
-print(f"Test accuracy: {accuracy:.2f}")
+#accuracy = classifier.score(test_predictions, test_labels)
+#print(f"Test accuracy: {accuracy:.2f}")
+print(classification_report(test_labels, test_predictions))
 
+test_acc = accuracy_score(test_labels, test_predictions)
+print(f"Test Accuracy: {test_acc:.2f}")
 
 if config["logging"]["wandb"]:
-    wandb.log({"test_accuracy": accuracy})
+    wandb.log({"test_accuracy": test_acc})
 if config["logging"]["tensorboard"]:
-    writer.add_scalar("Accuracy/Test", accuracy, 0)
+    writer.add_scalar("Accuracy/Test", test_acc, 0)
