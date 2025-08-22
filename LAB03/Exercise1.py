@@ -9,18 +9,26 @@ import random
 import wandb
 from torch.utils.tensorboard import SummaryWriter
 
-def extract_features(model, feature_extractor, dataset, device='cpu'):
+def extract_features(model, feature_extractor, dataset, config, device='cpu'):
     features = []
     labels = []
 
-    for i, example in enumerate(dataset):
-        text = example['text']
-        label = example['label']
+    dataloader = DataLoader(dataset, batch_size=config['batch_size'], shuffle=False)
 
-        output_features = feature_extractor(text)
-        cls_token_vector = output_features[0][0]  
-        features.append(cls_token_vector)
-        labels.append(label)
+    for batch in dataloader:
+        texts = batch['text']
+        labels = batch['label']
+
+        output_features = feature_extractor(texts)
+
+        cls_token_vector = []
+        for out in output_features:  
+            cls_vector = out[0]  
+            cls_token_vector.append(cls_vector)
+
+        
+        features.extend(cls_token_vector)
+        labels.extend(labels)
 
     return np.array(features), np.array(labels)
 
@@ -72,9 +80,9 @@ test_split = dataset['test']
 print(f"Training split size: {len(training_split)}, Validation split size: {len(validation_split)}, Test split size: {len(test_split)}")
 
 
-train_features, train_labels = extract_features(model, feature_extractor, training_split, device)
-validation_features, validation_labels = extract_features(model, feature_extractor, validation_split, device)
-test_features, test_labels = extract_features(model, feature_extractor, test_split, device)
+train_features, train_labels = extract_features(model, feature_extractor, training_split, device, config)
+validation_features, validation_labels = extract_features(model, feature_extractor, validation_split, device, config)
+test_features, test_labels = extract_features(model, feature_extractor, test_split, device, config)
 
 print("Train feature shape:", train_features.shape)
 print("Validation feature shape:", validation_features.shape)
