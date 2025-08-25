@@ -25,7 +25,6 @@ def extract_features(model, feature_extractor, dataset, config, device='cpu'):
         cls_token_vector = []
         for out in output_features:  
             cls_vector = out[0][0]  
-            #print("CLS vector shape:", np.array(cls_vector).shape)
             cls_token_vector.append(cls_vector)
 
         
@@ -99,12 +98,8 @@ classifier.fit(train_features, train_labels)
 print("Classifier training complete.")
 print("Evaluating classifier...")
 validation_predictions = classifier.predict(validation_features)
-#validation_predictions = validation_predictions.reshape(-1, 1)
-#validation_labels = validation_labels.reshape(-1, 1)
 print("Validation_predictions shape:", validation_predictions.shape)
 print("Validation_labels shape:", validation_labels.shape)
-#accuracy = classifier.score(validation_predictions, validation_labels)
-#print(f"Validation accuracy: {accuracy:.2f}")
 print(classification_report(validation_labels, validation_predictions))
 
 val_acc = accuracy_score(validation_labels, validation_predictions)
@@ -118,12 +113,8 @@ if config["logging"]["tensorboard"]:
 
 print("Evaluating on test set...")
 test_predictions = classifier.predict(test_features)
-#test_predictions = test_predictions.reshape(-1, 1)
-#test_labels = test_labels.reshape(-1, 1)
 print("Test_predictions shape:", test_predictions.shape)
 print("Test_labels shape:", test_labels.shape)
-#accuracy = classifier.score(test_predictions, test_labels)
-#print(f"Test accuracy: {accuracy:.2f}")
 print(classification_report(test_labels, test_predictions))
 
 test_acc = accuracy_score(test_labels, test_predictions)
