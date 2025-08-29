@@ -43,21 +43,26 @@ The testing environment has been managed with anaconda, it can be created by sim
 
 ## Exercise 1 - Reinforce on cartpole
 
-The cartpole environment is a simple environment that is usually used to  
+The exercise focused on improving the baseline implementation of the REINFORCE policy gradient algorithm and applying it to the Gymnasium CartPole-v1 environment.
+The reinforce function used for this exercise was further expanded in the following exercises so it has been written in a modular way to ensure compatibility with all exercises. The environment has been considered solved when the average reward over 100 trials was over 195.
 
 ### Implementation 1
+
+The code is quite simple as it revolves around the use of the reinforce function to train the policy network. The policy network was implemented as a simple MLP with one hidden layer of 128 neurons and a softmax output layer to produce action probabilities.
 
 ### Results 1
 
 ## Exercise 2 - Reinforce + baseline on cartpole
 
-To improve the basic reinforce algorithm we can add a baseline function ...
+To improve the basic reinforce algorithm we can add a baseline function and in this improvent over the previous exercise I tried improving with normalization and also by using an value function network with the same structure as the policy function as a baseline.
 
 ### Implementation 2
 
-In this exercise I added a second network based on the same model as the policy that represented the value function. This model ``
+In this exercise I added a second network based on the same model as the policy that represented the value function. This model
 
 ### Results 2
+
+The improvement over the previous exercise is clear with both attempts as the environment gets solved faster
 
 ## Exercise 3.1 - Reinforce on Lunar Lander
 

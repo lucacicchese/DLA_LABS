@@ -8,147 +8,108 @@ import numpy as np
 import random
 import wandb
 from torch.utils.tensorboard import SummaryWriter
-
-def extract_features(model, feature_extractor, dataset, config, device='cpu'):
-    features = []
-    labels = []
-    print(config['batch_size'])
-
-    dataloader = DataLoader(dataset, batch_size=config['batch_size'], shuffle=False)
-
-    for batch in dataloader:
-        texts = batch['text']
-        batch_labels = batch['label']
-
-        output_features = feature_extractor(texts)
-
-        cls_token_vector = []
-        for out in output_features:  
-            cls_vector = out[0][0]  
-            cls_token_vector.append(cls_vector)
-
-        
-        features.extend(cls_token_vector)
-        labels.extend(batch_labels)
-
-    return np.stack(features), np.array(labels)
+from utils import extract_features, compute_metrics
 
 def tokenize_function(examples):
-    # Use the tokenizer to tokenize the texts
+    
     return tokenizer(examples['text'], truncation=True, padding='max_length', max_length=config['model_max_length'])
 
-def compute_metrics(p):
-    logits, labels = p
-    predictions = torch.argmax(logits, axis=-1)
+if __name__ == "__main__":
+    config ={
+        "project_name": "LAB03_Exercise2",
+        "dataset_name": "rotten_tomatoes",
+        "model_name": "distilbert-base-uncased",
+        "model_max_length": 512,
+        "batch_size": 16,
+        "num_epochs": 5,
+        "learning_rate": 2e-5,
 
-    # Calculate accuracy, precision, recall, and F1 score
-    accuracy = accuracy_score(labels, predictions)
-    precision, recall, f1, _ = precision_recall_fscore_support(labels, predictions, average='binary')
-    
-    return {
-        'accuracy': accuracy,
-        'precision': precision,
-        'recall': recall,
-        'f1': f1
+        "logging": {
+            "tensorboard": True,
+            "weightsandbiases": True,
+            "wandb": True,  
+            "tb_logs": "tensorboard_runs",  
+            "save_dir": "checkpoints",      
+            "save_frequency": 100,
+            "logging_steps": 10
+        }
     }
 
-config ={
-    "project_name": "LAB03_Exercise2",
-    "dataset_name": "rotten_tomatoes",
-    "model_name": "distilbert-base-uncased",
-    "model_max_length": 512,
-    "batch_size": 16,
-    "num_epochs": 5,
-    "learning_rate": 2e-5,
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    "logging": {
-        "tensorboard": True,
-        "weightsandbiases": True,
-        "wandb": True,  
-        "tb_logs": "tensorboard_runs",  
-        "save_dir": "checkpoints",      
-        "save_frequency": 100,
-        "logging_steps": 10
-    }
-}
+    if config["logging"]["wandb"]: 
+        wandb.init(project="svm-text-classifier", config=config)
+    if config["logging"]["tensorboard"]:
+        writer = SummaryWriter(log_dir=f"logs/{config['logging']['tb_logs']}")
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    feature_extractor = pipeline("feature-extraction", model=config['model_name'], framework="pt")
 
-if config["logging"]["wandb"]: 
-    wandb.init(project="svm-text-classifier", config=config)
-if config["logging"]["tensorboard"]:
-    writer = SummaryWriter(log_dir=f"logs/{config['logging']['tb_logs']}")
+    # Exercise 2.1
+    print(f"Loading dataset: {config['dataset_name']}")
+    dataset = load_dataset(config['dataset_name'])
 
-feature_extractor = pipeline("feature-extraction", model=config['model_name'], framework="pt")
+    tokenizer = AutoTokenizer.from_pretrained(config['model_name'])
 
-# Exercise 2.1
-print(f"Loading dataset: {config['dataset_name']}")
-dataset = load_dataset(config['dataset_name'])
+    training_split = dataset['train']
+    validation_split = dataset['validation']
+    test_split = dataset['test']
+    print(f"Training split size: {len(training_split)}, Validation split size: {len(validation_split)}, Test split size: {len(test_split)}")
 
-tokenizer = AutoTokenizer.from_pretrained(config['model_name'])
+    print(f"Tokenizing dataset: {config['dataset_name']}")
+    tokenized_train = training_split.map(tokenize_function, batched=True)
+    tokenized_validation = validation_split.map(tokenize_function, batched=True)
+    tokenized_test = test_split.map(tokenize_function, batched=True)
 
-training_split = dataset['train']
-validation_split = dataset['validation']
-test_split = dataset['test']
-print(f"Training split size: {len(training_split)}, Validation split size: {len(validation_split)}, Test split size: {len(test_split)}")
+    assert 'input_ids' in tokenized_train.column_names, "Missing input_ids in train dataset!"
+    assert 'attention_mask' in tokenized_train.column_names, "Missing attention_mask in train dataset!"
+    assert 'input_ids' in tokenized_validation.column_names, "Missing input_ids in validation dataset!"
+    assert 'attention_mask' in tokenized_validation.column_names, "Missing attention_mask in validation dataset!"
+    assert 'input_ids' in tokenized_test.column_names, "Missing input_ids in test dataset!"
+    assert 'attention_mask' in tokenized_test.column_names, "Missing attention_mask in test dataset!"
 
-print(f"Tokenizing dataset: {config['dataset_name']}")
-tokenized_train = training_split.map(tokenize_function, batched=True)
-tokenized_validation = validation_split.map(tokenize_function, batched=True)
-tokenized_test = test_split.map(tokenize_function, batched=True)
+    train_labels = tokenized_train['label']
+    num_classes = len(set(train_labels))
 
-assert 'input_ids' in tokenized_train.column_names, "Missing input_ids in train dataset!"
-assert 'attention_mask' in tokenized_train.column_names, "Missing attention_mask in train dataset!"
-assert 'input_ids' in tokenized_validation.column_names, "Missing input_ids in validation dataset!"
-assert 'attention_mask' in tokenized_validation.column_names, "Missing attention_mask in validation dataset!"
-assert 'input_ids' in tokenized_test.column_names, "Missing input_ids in test dataset!"
-assert 'attention_mask' in tokenized_test.column_names, "Missing attention_mask in test dataset!"
+    # Exercise 2.2
+    print(f"Loading model for sequence classification with {num_classes} classes...")
+    model = AutoModelForSequenceClassification.from_pretrained(config['model_name'], num_labels=num_classes)
 
-train_labels = tokenized_train['label']
-num_classes = len(set(train_labels))
+    print(model)
 
-# Exercise 2.2
-print(f"Loading model for sequence classification with {num_classes} classes...")
-model = AutoModelForSequenceClassification.from_pretrained(config['model_name'], num_labels=num_classes)
+    # Exercise 2.3
+    data_collator = DataCollatorWithPadding(tokenizer=tokenizer, padding=True, return_tensors="pt")
 
-print(model)
+    training_args = TrainingArguments(
+        output_dir = config['logging']['save_dir'],            
+        evaluation_strategy = "epoch",
+        save_strategy = "epoch",       
+        learning_rate = config['learning_rate'],
+        per_device_train_batch_size = config['batch_size'],
+        per_device_eval_batch_size = config['batch_size'],
+        num_train_epochs = config['num_epochs'],
+        logging_dir = 'logs/',
+        logging_steps = config['logging']['logging_steps'],
+        save_steps = config['logging']['save_frequency'],
+        save_total_limit = 2,
+        load_best_model_at_end=True,
+        dataloader_drop_last = True
+    )      
 
-# Exercise 2.3
-data_collator = DataCollatorWithPadding(tokenizer=tokenizer, padding=True, return_tensors="pt")
+    trainer = Trainer(
+        model = model,
+        args = training_args,
+        train_dataset = tokenized_train,
+        eval_dataset = tokenized_validation,
+        data_collator = data_collator,
+        compute_metrics = compute_metrics
+    )
 
-training_args = TrainingArguments(
-    output_dir= config['logging']['save_dir'],            
-    evaluation_strategy="epoch",
-    save_strategy = "epoch",       
-    learning_rate=config['learning_rate'],
-    per_device_train_batch_size=config['batch_size'],
-    per_device_eval_batch_size=config['batch_size'],
-    num_train_epochs=config['num_epochs'],
-    weight_decay=0.01,
-    logging_dir='logs/',              
-    logging_steps=config['logging']['logging_steps'],                  
-    save_steps=config['logging']['save_frequency'],                    
-    save_total_limit=2,                
-    load_best_model_at_end=True
-)      
+    trainer.train()
 
-trainer = Trainer(
-    model=model,                        
-    args=training_args,                 
-    train_dataset=tokenized_train,      
-    eval_dataset=tokenized_validation,  
-    data_collator=data_collator,        
-    compute_metrics=compute_metrics     
-)
+    results = trainer.evaluate()
 
-trainer.train()
-
-results = trainer.evaluate()
-
-print("Evaluation Results:", results)
+    print("Evaluation Results:", results)
 
 
-if config["logging"]["wandb"]:
-    wandb.log({"Evaluation results": results})
-if config["logging"]["tensorboard"]:
-    writer.add_scalar("Evaluation results", results, 0)
+    if config["logging"]["wandb"]:
+        wandb.log({"Evaluation results": results})
