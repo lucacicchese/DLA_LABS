@@ -12,6 +12,7 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 from transformers import default_data_collator
 import torch.nn.functional as F
 from torch.utils.data import Dataset
+import numpy as np
 
 
 
@@ -43,8 +44,21 @@ class CLIPTinyImageNetLazyDataset(Dataset):
             "input_ids": inputs["input_ids"].squeeze(0),
             "attention_mask": inputs["attention_mask"].squeeze(0),
             "pixel_values": inputs["pixel_values"].squeeze(0),
+            "labels": int(label)
             
         }
+
+def clip_collator(batch):
+    """
+    Custom collator for CLIP datasets.
+    Ensures labels are included and batched properly.
+    """
+    return {
+        "input_ids": torch.stack([item["input_ids"] for item in batch]),
+        "attention_mask": torch.stack([item["attention_mask"] for item in batch]),
+        "pixel_values": torch.stack([item["pixel_values"] for item in batch]),
+        "labels": torch.tensor([item.get("labels", -1) for item in batch], dtype=torch.long)
+    }
 
 class CLIPTrainer(Trainer):
     def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
@@ -69,7 +83,42 @@ class CLIPTrainer(Trainer):
         loss_txt = F.cross_entropy(logits_per_text, labels)
         loss = (loss_img + loss_txt) / 2
 
-        return loss
+        if return_outputs:
+            return loss, {
+                "logits": logits_per_image,   
+                "labels": inputs["labels"]
+            }
+        else:
+            return loss
+        
+    def prediction_step(self, model, inputs, prediction_loss_only, ignore_keys=None):
+        device = model.device
+
+        with torch.no_grad():  # important: disables grad
+            outputs = model(
+                input_ids=inputs["input_ids"].to(device),
+                attention_mask=inputs["attention_mask"].to(device),
+                pixel_values=inputs["pixel_values"].to(device),
+            )
+
+            # logits
+            logits_per_image = outputs.logits_per_image
+            batch_size = logits_per_image.size(0)
+            labels = torch.arange(batch_size, device=device)
+
+            loss_img = F.cross_entropy(logits_per_image, labels)
+            loss_txt = F.cross_entropy(outputs.logits_per_text, labels)
+            loss = (loss_img + loss_txt) / 2
+
+            preds = logits_per_image.argmax(dim=-1)
+
+            # detach tensors and ensure 1D
+            preds = preds.detach().cpu().view(-1)
+            labels = labels.detach().cpu().view(-1)
+
+        if prediction_loss_only:
+            return (loss, None, None)
+        return (loss, preds, labels)
 
 def preprocess(batch):
     texts = [f"a photo of a {class_names[label]}" for label in batch["label"]]
@@ -112,24 +161,41 @@ def lazy_preprocess(example):
     example["labels"] = 0
     return example
 
+def preprocess_logits_for_metrics(logits, labels):
+    
+    if isinstance(logits, tuple):
+        logits = logits[0]
+    return logits.argmax(dim=-1) 
 
 def compute_metrics(p):
-    logits = p.predictions
+    print("⚡ compute_metrics called! ⚡")
+
+    preds = p.predictions
     labels = p.label_ids
 
-    predictions = torch.tensor(logits).argmax(dim=-1).numpy()
+    # Force 1D arrays, even if scalar
+    if np.isscalar(preds):
+        preds = np.array([preds])
+    else:
+        preds = np.atleast_1d(np.array(preds))
 
-    accuracy = accuracy_score(labels, predictions)
-    #precision, recall, f1, _ = precision_recall_fscore_support(labels, predictions, average='binary')
+    if np.isscalar(labels):
+        labels = np.array([labels])
+    else:
+        labels = np.atleast_1d(np.array(labels))
 
-    return {
-        'accuracy': accuracy
-        #'precision': precision,
-        #'recall': recall,
-        #'f1': f1
+    accuracy = accuracy_score(labels, preds)
+    precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average='weighted')
+
+    metrics ={
+        'accuracy': float(accuracy),
+        'precision': float(precision),
+        'recall': float(recall),
+        'f1': float(f1)
     }
+    print(f"Metrics: {metrics}")
 
-
+    return metrics
 
 def zero_shot_eval(model, processor, dataset_val):
     class_names = dataset_val['validation'].features['label'].names
@@ -206,13 +272,13 @@ def lora(model, processor, dataset_train, dataset_val, config):
         logging_dir="./logs",
         logging_steps=config["logging"]["logging_steps"],
         save_strategy="steps",
-        eval_strategy="no",
+        eval_strategy="steps",
         eval_steps=100,               
         save_steps=100,
-        max_steps=1000,
+        max_steps=100,
         eval_accumulation_steps=1,
         fp16=True,
-        prediction_loss_only=True,
+        prediction_loss_only=False,
         dataloader_pin_memory=True,
         
 
@@ -223,8 +289,9 @@ def lora(model, processor, dataset_train, dataset_val, config):
         args=training_args,
         train_dataset=dataset_train,
         eval_dataset=dataset_val,
-        data_collator=default_data_collator,
-        compute_metrics=compute_metrics
+        data_collator=clip_collator,
+        compute_metrics=compute_metrics,
+        preprocess_logits_for_metrics=preprocess_logits_for_metrics
     )
 
     trainer.train()

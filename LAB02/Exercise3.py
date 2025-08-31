@@ -13,16 +13,10 @@ if __name__ == "__main__":
         "dataset_name": "LunarLander-v3",
         "training": {
             "learning_rate": 0.001,
-            "optimizer": "adam",
+            "optimizer": "adamW",
             "epochs": 10000,
             "batch_size": 64,
             "resume": False,
-            "layers": [4, 64, 64, 2],
-            "loss_function": "crossentropy"
-        },
-        "model": {
-            "type": "mlp",
-            "layers": [4, 64, 64, 2]
         },
         "logging": {
             "tensorboard": True,
@@ -30,7 +24,7 @@ if __name__ == "__main__":
             "wandb": True,
             "tb_logs": "tensorboard_runs",
             "save_dir": "checkpoints",
-            "save_frequency": 1
+            "save_frequency": 100
         }
     }
 
@@ -40,10 +34,10 @@ if __name__ == "__main__":
     env = gym.make('LunarLander-v3', render_mode='rgb_array')
     env_render = gym.make('LunarLander-v3', render_mode='human')
 
-    policy = models.Policy(input_size=env.observation_space.shape[0], actions=env.action_space.n).to(device)
-    value_function = models.Policy(input_size=env.observation_space.shape[0], actions=1, softmax=False).to(device)
+    policy = models.Policy_Lander(input_size=env.observation_space.shape[0], actions=env.action_space.n).to(device)
+    value_function = models.Policy_Lander(input_size=env.observation_space.shape[0], actions=1, softmax=False).to(device)
 
-    rewards = reinforce(policy, env, env_render=env_render, gamma=0.99, num_episodes=config['training']['epochs'], value_function=value_function, standardize=True, config=config)
+    rewards = reinforce(policy, env, env_render=env_render, gamma=0.99, num_episodes=config['training']['epochs'], value_function=value_function, standardize=True, winning_score=200, config=config)
 
     print("Training completed. Final running reward:", rewards[-1])
     env.close()

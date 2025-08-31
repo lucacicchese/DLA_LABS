@@ -19,14 +19,6 @@
 | LAB01 Exercise 1.3 | ✅ | |
 | LAB01 Exercise 2.3 | ✅ | |
 
-### TODO List
-
-- LAB01 Save models
-- LAB01 Comment everything
-- LAB01 Visualize conv kernels
-- LAB01 Analyze gradients
-- LAB01 Exercise 2
-
 ## File Structure
 
 ```linux
@@ -58,12 +50,22 @@ The testing environment has been managed with anaconda:
 
 Implementation of a simple multilayer perceptron to classify the 10 digits of the  **MNIST** dataset.
 
+### MNIST dataset
+
 ### Implementation 1.1
+
+The hyperparameters are defined in the *Exercise1_1.py* file in a dictionary called *config*. I put here the most relevant ones:
+
+- Learning rate: 0.001
+- Optimizer: Adam
+- Batch size: 64
+- Loss function: Cross-entropy
+- Epochs: 50
 
 In the tests for this exercise the model used contained 5 layers:
 
 - The first layer size is 28*28 as this is the size of an image from the **MNIST** dataset
-- The following layer sizes have been randomly selected
+- Two 64 neuron layers
 - The last layer size is 10 as **MNIST** has 10 classes
 
 All hyperparameters have been defined in the *Exercise1_1.py* file.
@@ -75,40 +77,90 @@ As for the training function the evaluation function has been defined in its own
 
 ### Results 1.1
 
-The training and validation losses reach a very low value in just 20 epochs as the **MNIST** dataset is quite simple.
-![MLP train loss](assets/MLP_train_loss.png)
-![MLP val loss](assets/MLP_val_loss.png)
-We notice a similar trend in the validation accuracy that in just 20 epochs reaches a value of almost *98%*
-![MLP val accuracy](assets/MLP_val_accuracy.png)
+The training and validation losses reach a very low values in just 50 epochs as the **MNIST** dataset is quite simple.
+![MLP train loss](assets/LAB01_1_1_train_loss.png)
+![MLP val loss](assets/LAB01_1_1_val_loss.png)
+We notice a similar trend in the validation accuracy that in just 50 epochs reaches a value of over *97%*
+![MLP val accuracy](assets/LAB01_1_1_val_acc.png)
 I finally tested the trained model on the test set and it achieved a very good result considering the short training and the simplicity of the model.
-**Loss on test set:** 0.0017312777630984783
-**Accuracy on test set:** 0.9674
+**Loss on test set:** 0.0016719
+**Accuracy on test set:** 0.9733
 
 ## Exercise 1.2 - MLP + residual connections
 
-Implementation of a multilayer perceptron with residual connections. The MLP constructor takes an array of int that represent the layers of the MLP.
+In this exercise, I implemented a Skip-MLP (Multilayer Perceptron) model and trained it on the CIFAR-10 dataset. The goal was to build a model with skip connections, which can help with vanishing gradients and improve training performance. This exercise proved to be challenging in managing skip connections between layers with different sizes but after dealing with that it performed marginally better compared to the simple MLP. I also tried testing it on the CIFAR10 dataset but after a few test I figured that the model wasn't powerfull enough as the test loss kept going down but the validation loss started increasing and the accuracy stopped at about 50%. To try and solve this I added a dropout layer to the skipblock but the improvement was negligible.
 
-### Implementation 1.2
+### Implementation
 
-In this case the same MLP structure as before is taken but in between each layer a skip connection i added, in cases where the dimensions didn't match beween layers the disparity has been managed by adding a layer with the same input size as the previous and the output of the next.
-**TODO CONTROLLARE CHE SIA COSì**
+The hyperparameters are defined in the *Exercise1_2.py* file in a dictionary called *config*. I put here the most relevant ones:
+
+- Learning rate:
+- Optimizer: Adam
+- Batch size:
+- Loss function:
+- Epochs: 50
+
+The Skip-MLP model was implemented with skip connections between layers, which allow direct shortcuts between non-adjacent layers, helping to preserve important gradients during training. The model is a fully connected network with layers defined by the configuration.
+
+The training loop utilized Adam as the optimizer, and the model was trained for 20 epochs. After training, I evaluated the model on the test set to obtain performance metrics like loss and accuracy.
 
 ### Results 1.2
+
+The training and validation losses reach a very low values in just 50 epochs as the **MNIST** dataset is quite simple.
+![MLP train loss](assets/LAB01_1_2_train_loss.png)
+![MLP val loss](assets/LAB01_1_2_val_loss.png)
+In this case the maximum validation accuracy reached was just over *97.6%*
+![MLP val accuracy](assets/LAB01_1_2_val_acc.png)
+I finally tested the trained model on the test set and it achieved a very good result considering the short training and the simplicity of the model.
+**Loss on test set:** 0.001513
+**Accuracy on test set:** 0.9756
 
 ### Comparing performance
 
 ### Gradient analysis
 
+TODO
+
 ## Exercise 1.3 - CNN
 
-Implementation of a simple CNN.
+The hyperparameters are defined in the *Exercise1_3.py* file in a dictionary called *config*. I put here the most relevant ones:
+
+- Learning rate:
+- Optimizer:
+- Batch size:
+- Loss function:
+- Epochs: 75
+
+In this exercise, I built and trained a Fully convolutional CNN (Convolutional Neural Network) on the CIFAR-10 dataset. The focus was on implementing a convolutional architecture to solve a standard image classification task and preparing for the following exercise in which this architecture will be reused.
+
+### CIFAR-10 Dataset
+
+The CIFAR-10 dataset consists of 60,000 32x32 color images in 10 classes, with 6,000 images per class. The dataset is split into 50,000 training images and 10,000 test images. A portion of the training data (30%) was reserved for evaluation during the training process.
 
 ### Implementation 1.3
 
-The CNN I implemented takes an array of layer sizes in input and optionally: the size of the image, the amout of channels, the kernel size, stride and padding that get used for each layer. A further implementation could be to have a model that gets a matrix of layers instead of an array so that it can deal with having layers with different kernel sizes paddings and strides.
-Each layer is followed by a *batch normalization* layer, a *ReLu* activation function and a *Max Pooling* layer.
+The hyperparameters are defined in the *Exercise1_3.py* file in a dictionary called *config*. I put here the most relevant ones:
 
-### Results 1.3
+- Learning rate:
+- Optimizer:
+- Batch size:
+- Loss function:
+- Epochs: 75
+
+The CNN I implemented takes an array of layer sizes in input and optionally: the size of the image, the amout of channels, the kernel size, stride and padding that get used for each layer. A further implementation could be to have a model that gets a matrix of layers instead of an array so that it can deal with having layers with different kernel sizes paddings and strides.
+Each layer is followed by a *batch normalization* layer, a *ReLu* activation function, a *Dropot layer* and a *Max Pooling* layer.
+
+The optimizer used was Adam, and the model was trained for 75 epochs.
+
+### Results
+
+The training on the **CIFAR10** dataset proved very challenging when approached with an MLP with skip connections but with a bit of tuning a CNN solved it without too many sweats.
+![MLP train loss](assets/LAB01_1_3_train_loss.png)
+![MLP val loss](assets/LAB01_1_3_val_loss.png)
+In this case the maximum validation accuracy reached was just over *76.5%* which isn't as high as what state of the art CNNs can achieve but it's reasonable considering the rather simple network.
+![MLP val accuracy](assets/LAB01_1_3_val_acc.png)
+I finally tested the trained model on the test set and it achieved a very good result considering the short training and the simplicity of the model.
+**Accuracy on test set:** 0.761
 
 ## Exercise 2.3 - Explain the predictions of a CNN
 

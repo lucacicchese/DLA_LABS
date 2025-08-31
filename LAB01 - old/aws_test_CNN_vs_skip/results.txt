@@ -1,8 +1,0 @@
-Minimum loss = 0.38193333333333335
-Evaluating: 100%|███████████████████████████████████████████████| 79/79 [00:01<00:00, 73.02it/s]
-Accuracy on test set skip connections CIFAR: 0.5007
-
-Minimum loss = 0.01521854761335319
-Evaluating: 100%|███████████████████████████████████████████████| 79/79 [00:06<00:00, 13.06it/s]
-Accuracy on test set for CNN: 0.7232
-

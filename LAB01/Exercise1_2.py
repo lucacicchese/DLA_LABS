@@ -1,3 +1,11 @@
+"""
+LAB01
+Exercise 1.1
+
+Testing an MLP with skip connections on the MNIST dataset
+"""
+
+
 # Libraries
 from dataset import load_dataset
 from training import train_model, get_loss
@@ -13,23 +21,23 @@ if __name__ == "__main__":
     config = {
     "project_name": "LAB01_Exercise1_2",  
 
-    "dataset_name": "CIFAR10", 
+    "dataset_name": "MNIST", 
 
     "training": {
         "eval_percentage": 0.3,
-        "learning_rate": 0.001,
+        "learning_rate": 0.0001,
         "optimizer": "adam", 
-        "epochs": 20,
+        "epochs": 50,
         "batch_size": 64,
         "resume": True, 
-        "layers": [32*32*3, 64, 128, 64, 64, 10],
-        "dataset_name": 'cifar10',
+        "layers": [28*28, 128, 64, 64, 10],
+        "dataset_name": 'mnist',
         "loss_function": "crossentropy"
     },
 
     "model": {
         "type": "skip-mlp",  
-        "layers": [32*32*3, 64, 128, 64, 64, 10]  
+        "layers": [28*28, 128, 64, 64, 10]  
     },
 
     "logging": {
@@ -41,8 +49,6 @@ if __name__ == "__main__":
         "save_frequency": 4            
     }
 }
-
-
 
 
     train_hyperparameters = config["training"]
@@ -61,11 +67,6 @@ if __name__ == "__main__":
     model = models.skipMLP(train_hyperparameters['layers'])
     print(f"Model architecture: {model}")
     model.to(device)
-
-
-    # Choose optimizer
-    if train_hyperparameters['optimizer'] == 'Adam':
-        optimizer = torch.optim.Adam(model.parameters(), lr=train_hyperparameters['learning_rate'])
 
 
     losses, accuracies = train_model(model, train_data, eval_data, config, device)

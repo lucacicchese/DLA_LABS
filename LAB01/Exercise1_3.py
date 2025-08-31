@@ -20,17 +20,17 @@ if __name__ == "__main__":
         "eval_percentage": 0.3,
         "learning_rate": 0.001,
         "optimizer": "adam", 
-        "epochs": 30,
+        "epochs": 75,
         "batch_size": 64,
         "resume": True, 
-        "layers": [64, 64, 64, 10],
+        "layers": [64, 128, 256, 128, 64, 10],
         "dataset_name": 'cifar10',
         "loss_function": "crossentropy"
     },
 
     "model": {
         "type": "simple_cnn",  
-        "layers": [64, 64, 64, 10] 
+        "layers": [64, 128, 128, 10] 
     },
 
     "logging": {
@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
     print(f"Minimum loss = {np.min(accuracies)}")
 
-    loss_fn = get_loss(config['training']['loss_function'])
+    loss_fn = get_loss(config)
     avg_loss, accuracy = evaluate(model, test_data, loss_fn, device=device)
 
     print(f"Accuracy on test set: {accuracy}")

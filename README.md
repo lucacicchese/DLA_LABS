@@ -18,8 +18,8 @@
 | LAB02 Exercise 2 | ✅  |  |[Go to section](LAB02/README.md)|
 | LAB02 Exercise 3.1 | ✅  |  |[Go to section](LAB02/README.md)|
 | LAB03 Exercise 1 | ✅ |  |[Go to section](LAB03/README.md)|
-| LAB03 Exercise 2 |  | 🔁 |[Go to section](LAB03/README.md)|
-| LAB03 Exercise 3.2 |  | 🔁 |[Go to section](LAB03/README.md)|
+| LAB03 Exercise 2 | ✅ |  |[Go to section](LAB03/README.md)|
+| LAB03 Exercise 3.2 | ✅ |  |[Go to section](LAB03/README.md)|
 
 ## File Structure
 
@@ -28,10 +28,11 @@ Each lab has its own folder called LAB**XX** containing
 - _README.md_: A readme explaining each exercise completed in the lab with results
 - _Exercise**X**.py_: The main file to execute the code for a certain exercise
 
-## References
+## Main References
 
+- Course slides
 - Professor Bagdanov's jupyter notebooks
 - _Deep Learning with PyTorch Step-by-Step A Beginner’s Guide_ by **Daniel
 Voigt Godoy**
 - [Gymnasium documentation](https://gymnasium.farama.org)
-- **TODO ADD PAPERS**
+- [Hugging Face documentation](https://huggingface.co/docs)

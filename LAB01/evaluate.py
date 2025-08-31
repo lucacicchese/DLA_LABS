@@ -1,14 +1,12 @@
-from training import get_loss
 """
 Evalute function for deep learning models using pytorch
 
 The module includes the following functions:
     - evaluate(model, data_loader, loss_fn, device)
 
-Author:
-    Luca G. Cicchese
 """
 
+# Import external libraries
 import torch
 import numpy as np
 from tqdm import tqdm
@@ -29,7 +27,7 @@ def evaluate(model, data_loader, loss_fn, device):
         float: Accuracy of the model on dataset
     """
     model.to(device)
-    loss_fn = get_loss(loss_fn)
+    #loss_fn = get_loss(loss_fn)
     model.eval()
     predictions = []
     ground_truth = [] 

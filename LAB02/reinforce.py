@@ -41,7 +41,7 @@ def run_episode(env, policy, device=torch.device("cpu")):
     return observations, actions, log_probs, rewards
 
 
-def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_freq=20, standardize=True, value_function=None, device=torch.device("cpu"), record=False, config = None):
+def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=20, check_freq=20, standardize=False, value_function=None, device=torch.device("cpu"), record=True, winning_score=195, config=None):
 
     if config is not None and config["logging"]["wandb"]:
         wandb.init(project=config["project_name"])
@@ -59,12 +59,20 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_f
 
     policy.to(device)
 
-    policy_opt = torch.optim.Adam(policy.parameters(), lr=0.001)
+    if config["training"]["optimizer"] == "adamW":
+        policy_opt = torch.optim.AdamW(policy.parameters(), lr=config["training"]["learning_rate"], weight_decay=0.0001)
+    else:
+        policy_opt = torch.optim.Adam(policy.parameters(), lr=config["training"]["learning_rate"])
+    
+
     policy.train()
     
     if value_function is not None:
         value_function.to(device)
-        value_opt = torch.optim.Adam(value_function.parameters(), lr=0.001)
+        if config["training"]["optimizer"] == "adamW":
+            value_opt = torch.optim.AdamW(value_function.parameters(), lr=config["training"]["learning_rate"], weight_decay=0.0001)
+        else:
+            value_opt = torch.optim.Adam(value_function.parameters(), lr=config["training"]["learning_rate"])
         mse_loss = torch.nn.MSELoss()
         value_function.train()
 
@@ -170,7 +178,7 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=50, check_f
 
             writer.add_scalar("Reward/Running_Avg", running_rewards[-1], episode)
 
-        if running_rewards[-1] >= 195:
+        if running_rewards[-1] >= winning_score:
             print(f"The agent won! Environment solved in {episode + 1} episodes.")
             break
 

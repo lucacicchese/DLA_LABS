@@ -18,7 +18,7 @@ from torchvision import transforms
 import torchvision.datasets as datasets
 
     
-def simple_transformation(mean, std):
+def simple_transformation(mean, std, dataset='cifar10'):
     """
     This function creates the standard transformation of data:
     - converts data to tensor
@@ -31,11 +31,16 @@ def simple_transformation(mean, std):
     Returns:
     	
     """
-    return transforms.Compose([
-                        transforms.ToTensor(),
-                        transforms.Normalize((mean,), (std,)) 
-                        ])
 
+    if dataset.lower() == 'cifar10':
+        
+        mean = (0.4914, 0.4822, 0.4465)
+        std = (0.2023, 0.1994, 0.2010)
+        
+    return transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(mean, std)
+    ])
 
 def load_dataset(dataset_name='MNIST', val_percentage = 0.3, batch_size = 64):
     """
@@ -56,9 +61,9 @@ def load_dataset(dataset_name='MNIST', val_percentage = 0.3, batch_size = 64):
     if dataset_name.lower() == 'mnist':
         dataset = datasets.MNIST(root='./data', train=True, download = True)
         mean = (dataset.data /255.0).mean()
-        std = (dataset.data /255.0).mean()
+        std = (dataset.data /255.0).std()
 
-        transform = simple_transformation(mean, std)
+        transform = simple_transformation(mean, std, dataset='mnist')
 
         ds_train = datasets.MNIST(root='./data', train=True, download=True, transform=transform) 
         ds_test = datasets.MNIST(root='./data', train=False, download=True, transform=transform) 
@@ -66,7 +71,7 @@ def load_dataset(dataset_name='MNIST', val_percentage = 0.3, batch_size = 64):
     elif dataset_name.lower() == 'cifar10':
         dataset = datasets.CIFAR10(root='./data', train=True,  download = True)
         mean = (dataset.data /255.0).mean()
-        std = (dataset.data /255.0).mean()
+        std = (dataset.data /255.0).std()
 
         transform = simple_transformation(mean, std)
 

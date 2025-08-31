@@ -1,9 +1,17 @@
-# Libraries
+"""
+LAB01
+Exercise 1.1
+
+Testing a simple MLP on the MNIST dataset
+"""
+
+# Import my modules
 from dataset import load_dataset
 from training import train_model, get_loss
 from evaluate import evaluate
 import models
 
+# Import external libraries
 import numpy as np
 import torch
 
@@ -19,17 +27,17 @@ if __name__ == "__main__":
         "eval_percentage": 0.3,
         "learning_rate": 0.0001,
         "optimizer": "adam",  
-        "epochs": 20,
+        "epochs": 50,
         "batch_size": 64,
         "resume": True, 
-        "layers": [28*28, 64, 128, 64, 64, 10],
+        "layers": [28*28, 64, 64, 10],
         "dataset_name": 'MNIST',
         "loss_function": "crossentropy"
     },
 
     "model": {
         "type": "mlp",  
-        "layers": [28 * 28, 64, 128, 64, 64, 10]  
+        "layers": [28 * 28, 64, 64, 10]  
     },
 
     "logging": {
