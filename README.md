@@ -4,8 +4,8 @@
 
 1. [Completed exercises](#completed-exercises)
 2. [File Structure](#file-structure)
-3. [References](#main-references)
-4. [Reflections on completing the labs](#reflections-on-completing-the-labs)
+3. [Environment](#environment)
+4. [References](#main-references)
 
 ## Completed exercises
 
@@ -29,6 +29,18 @@ Each lab has its own folder called LAB**XX** containing
 - _README.md_: A readme explaining each exercise completed in the lab with results
 - _Exercise**X**.py_: The main file to execute the code for a certain exercise
 
+## Environment
+
+All labs have been developed and tested in this environment and it can be recreateb by runniing the following commands
+
+```linux
+
+python -m venv DLA_LABS_CICCHESE
+source DLA_LABS_CICCHESE/bin/activate
+
+pip install -r requirements.txt
+```
+
 ## Main References
 
 - Course slides
@@ -37,5 +49,3 @@ Each lab has its own folder called LAB**XX** containing
 Voigt Godoy**
 - [Gymnasium documentation](https://gymnasium.farama.org)
 - [Hugging Face documentation](https://huggingface.co/docs)
-
-## Reflections on completing the labs

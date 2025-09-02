@@ -4,10 +4,9 @@
 
 1. [Completed exercises](#completed-exercises)
 2. [Detailed file structure](#file-structure)
-3. [Environment](#environment)
-4. [Exercise 1](#exercise-1---distilbert-on-rotten-tomatoes)
-5. [Exercise 2](#exercise-2---fine-tuning-distilbert)
-6. [Exercise 3](#exercise-32---fine-tuning-clip)
+3. [Exercise 1](#exercise-1---distilbert-on-rotten-tomatoes)
+4. [Exercise 2](#exercise-2---fine-tuning-distilbert)
+5. [Exercise 3](#exercise-32---fine-tuning-clip)
 
 ## Completed exercises
 
@@ -33,11 +32,6 @@ LAB03
 │   
 
  ```
-
-## Environment
-
-The testing environment has been managed with anaconda:
-`conda env create -f environment.yml`
 
 ## Exercise 1 - DistilBERT on rotten tomatoes
 

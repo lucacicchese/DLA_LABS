@@ -4,10 +4,9 @@
 
 1. [Completed exercises](#completed-exercises)
 2. [Detailed file structure](#file-structure)
-3. [Environment](#environment)
-4. [Exercise 1](#exercise-1---reinforce-on-cartpole)
-5. [Exercise 2](#exercise-2---reinforce--baseline-on-cartpole)
-6. [Exercise 3](#exercise-31---reinforce-on-lunar-lander)
+3. [Exercise 1](#exercise-1---reinforce-on-cartpole)
+4. [Exercise 2](#exercise-2---reinforce--baseline-on-cartpole)
+5. [Exercise 3](#exercise-31---reinforce-on-lunar-lander)
 
 ## Completed exercises
 
@@ -35,11 +34,6 @@ LAB02
     └─── checkpoints
     └─── tensorboard
  ```
-
-## Environment
-
-The testing environment has been managed with anaconda, it can be created by simply running:
-`conda env create -f environment.yml`
 
 ## Exercise 1 - Reinforce on cartpole
 

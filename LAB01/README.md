@@ -4,11 +4,10 @@
 
 1. [Completed exercises](#completed-exercises)
 2. [Detailed file structure](#file-structure)
-3. [Environment](#environment)
-4. [Exercise 1.1](#exercise-11---simple-mlp)
-5. [Exercise 1.2](#exercise-12---mlp--residual-connections)
-6. [Exercise 1.3](#exercise-13---cnn)
-7. [Exercise 2.3](#exercise-23---explain-the-predictions-of-a-cnn)
+3. [Exercise 1.1](#exercise-11---simple-mlp)
+4. [Exercise 1.2](#exercise-12---mlp--residual-connections)
+5. [Exercise 1.3](#exercise-13---cnn)
+6. [Exercise 2.3](#exercise-23---explain-the-predictions-of-a-cnn)
 
 ## Completed exercises
 
@@ -37,11 +36,6 @@ LAB01
 └───assets
  
  ```
-
-## Environment
-
-The testing environment has been managed with anaconda:
-`conda env create -f environment.yml`
 
 ## Exercise 1.1 - Simple MLP
 
