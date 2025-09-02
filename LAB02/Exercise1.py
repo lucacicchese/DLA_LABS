@@ -1,9 +1,17 @@
+"""
+LAB02
+Exercise 1
+
+Policy Gradient Method applied to the cartpole environment
+"""
+
+# Import my modules
 from reinforce import reinforce
 import models
 
+# Import external libraries
 import gymnasium as gym
 import torch
-
 import torch.nn.functional as F
 
 if __name__ == "__main__":
@@ -31,6 +39,10 @@ if __name__ == "__main__":
             "tb_logs": "tensorboard_runs",
             "save_dir": "checkpoints",
             "save_frequency": 1
+        },
+        "env_settings" : {
+            "record": True,
+            "winning_score": 475
         }
     }
 
@@ -42,7 +54,7 @@ if __name__ == "__main__":
 
     policy = models.Policy(input_size=env.observation_space.shape[0], actions=env.action_space.n).to(device)
 
-    rewards = reinforce(policy, env, env_render=env_render, gamma=0.99, num_episodes=config['training']['epochs'], config=config)
+    rewards = reinforce(policy, env, env_render=env_render, gamma=0.99, standardize=True, num_episodes=config['training']['epochs'], record=config['env_settings']['record'], winning_score=config['env_settings']['winning_score'], config=config)
 
     print("Training completed. Final running reward:", rewards[-1])
     env.close()

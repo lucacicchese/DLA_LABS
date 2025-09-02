@@ -1,10 +1,18 @@
+"""
+LAB02
+Exercise 2
+
+Policy Gradient Method + baseline applied to the cartpole environment
+"""
+
+# Import my modules
 from reinforce import reinforce
 import models
 import test
 
+# Import external libraries
 import gymnasium as gym
 import torch
-
 import torch.nn.functional as F
 
 if __name__ == "__main__":
@@ -32,6 +40,10 @@ if __name__ == "__main__":
             "tb_logs": "tensorboard_runs",
             "save_dir": "checkpoints",
             "save_frequency": 1
+        },
+        "env_settings" : {
+            "record": True,
+            "winning_score": 475
         }
     }
 
@@ -43,16 +55,10 @@ if __name__ == "__main__":
 
     policy = models.Policy(input_size=env.observation_space.shape[0], actions=env.action_space.n).to(device)
 
-    #rewards_false = reinforce(policy, env, env_render=env_render, gamma=0.99, num_episodes=config['training']['epochs'], standardize=False)
-    #rewards_true = reinforce(policy, env, env_render=env_render, gamma=0.99, num_episodes=config['training']['epochs'], standardize=True)
-
-    #print("Training completed. Final running reward (without standardization):", rewards_false[-1])
-    #print("Training completed. Final running reward (with standardization):", rewards_true[-1])
 
     value = models.Policy(input_size=env.observation_space.shape[0], actions=1, softmax=False).to(device)
 
-    #rewards = test.reinforce_with_baseline(policy=value, env=env, env_render=env_render, gamma=0.99, num_episodes=config['training']['epochs'], value_function=value)
-    rewards = reinforce(policy=policy, env=env, env_render=env_render, gamma=0.99, num_episodes=config['training']['epochs'], value_function=value, config = config)
+    rewards = reinforce(policy=policy, env=env, env_render=env_render, gamma=0.99, num_episodes=config['training']['epochs'], value_function=value, winning_score=config['env_settings']['winning_score'], config=config)
 
     env.close()
     env_render.close()

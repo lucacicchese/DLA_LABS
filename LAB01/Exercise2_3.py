@@ -1,11 +1,9 @@
-# Use the CNN model you trained in Exercise 1.3 and implement 
-# [*Class Activation Maps*](http://cnnlocalization.csail.mit.edu/#:~:text=A%20class%20activation%20map%20for,decision%20made%20by%20the%20CNN.):> B. Zhou, A. Khosla, A. Lapedriza, A. Oliva, and A. Torralba. 
-# Learning Deep Features for Discriminative Localization. CVPR'16 (arXiv:1512.04150, 2015). 
-# Use your CNN implementation to demonstrate how your trained CNN *attends* to specific image features 
-# to recognize *specific* classes. Try your implementation out using a pre-trained ResNet-18 model and 
-# some images from the 
-# [Imagenette](https://pytorch.org/vision/0.20/generated/torchvision.datasets.Imagenette.html#torchvision.datasets.Imagenette) dataset 
-# -- I suggest you start with the low resolution version of images at 160px.
+"""
+LAB01
+Exercise 2.3
+
+Visualizing Class Activation Maps
+"""
 
 # Libraries
 from dataset import load_dataset
@@ -19,41 +17,9 @@ import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import random
 
+from cam import cam
+from training import get_loss
 
-
-def class_activation_map(model, input_image, target_class):
-
-    model.eval()
-    model.zero_grad()
-    output = model(input_image)
-    if class_idx is None:
-        class_idx = output.argmax(dim=1).item()
-
-    output[:, class_idx].backward()
-
-    activations = model.get_activation()
-
-    gradients = torch.autograd.grad(outputs=output[:, class_idx], inputs=activations,
-                                    grad_outputs=torch.ones_like(output[:, class_idx]), retain_graph=True)[0]
-    weights = torch.mean(gradients, dim=(2, 3), keepdim=True)  # Media su tutte le dimensioni spaziali
-    cam = torch.sum(weights * activations, dim=1, keepdim=True)  # Somma ponderata delle attivazioni
-
-    cam = F.relu(cam)
-
-
-    cam = cam - cam.min()
-    cam = cam / cam.max()
-
-    cam = F.interpolate(cam, size=input_image.shape[2:], mode='bilinear', align_corners=False)
-
-    cam = cam.squeeze().cpu().detach().numpy()
-
-
-    input_image = input_image.squeeze().cpu().detach().numpy()   
-    plt.imshow(input_image, cmap='gray')
-    plt.imshow(cam, cmap='jet', alpha=0.5)
-    plt.colorbar()
-    plt.show()
 
 if __name__ == "__main__":
 
@@ -66,11 +32,11 @@ if __name__ == "__main__":
         "eval_percentage": 0.3,
         "learning_rate": 0.0001,
         "optimizer": "adam", 
-        "epochs": 5,
+        "epochs": 40,
         "batch_size": 64,
         "resume": True, 
         "layers": [64, 64, 64, 10],
-        "dataset_name": 'cifar10',
+        "dataset_name": 'imagenette',
         "loss_function": "crossentropy"
     },
 
@@ -114,18 +80,18 @@ if __name__ == "__main__":
     accuracies = train_model(model, train_data, eval_data, config, device)
 
     print(f"Minimum loss = {np.min(accuracies)}")
-    accuracy = evaluate(model, test_data, config["training"]["loss_function"], device=device)
+    accuracy = evaluate(model, test_data, get_loss(config), device=device)
 
     print(f"Accuracy on test set: {accuracy}")
 
-    num_samples = 15
+    #model = models.ResNet18(num_classes=train_data.dataset.num_classes, pretrained=True)
 
-    random_indices = random.sample(range(len(test_data)), num_samples)
 
-    for idx in random_indices:
-        image, label = test_data[idx]
-        image = image.unsqueeze(0).to(device)
-        
-        class_activation_map(model, image, label.item())
-
-    
+    print("\nGenerating Class Activation Maps...")
+    cam(
+        model=model,
+        test_data=test_data,
+        device=device,
+        num_samples_per_class=5, 
+        save_folder='cam_images'
+    )

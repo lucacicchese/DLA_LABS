@@ -1,3 +1,11 @@
+"""
+LAB01
+Exercise 1.3
+
+Policy Gradient Method applied to the cartpole environment
+"""
+
+
 # Libraries
 from dataset import load_dataset
 from training import train_model, get_loss

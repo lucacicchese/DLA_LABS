@@ -1,14 +1,17 @@
-from datasets import load_dataset, get_dataset_split_names
-from transformers import AutoTokenizer, AutoModel, pipeline, AutoModelForSequenceClassification, DataCollatorWithPadding, TrainingArguments, Trainer
-from sklearn.svm import SVC
-from sklearn.metrics import classification_report, accuracy_score, precision_recall_fscore_support
+"""
+LAB03
+Exercise 2
+
+Fine-tuning DistilBERT for sentiment analysis
+"""
+
+# Import external libraries
+from datasets import load_dataset
+from transformers import AutoTokenizer, pipeline, AutoModelForSequenceClassification, DataCollatorWithPadding, TrainingArguments, Trainer
 import torch
-from torch.utils.data import DataLoader
-import numpy as np
-import random
 import wandb
 from torch.utils.tensorboard import SummaryWriter
-from utils import extract_features, compute_metrics
+from utils import compute_metrics
 
 def tokenize_function(examples):
     
@@ -38,7 +41,7 @@ if __name__ == "__main__":
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     if config["logging"]["wandb"]: 
-        wandb.init(project="svm-text-classifier", config=config)
+        wandb.init(project=config['project_name'], config=config)
     if config["logging"]["tensorboard"]:
         writer = SummaryWriter(log_dir=f"logs/{config['logging']['tb_logs']}")
 
@@ -81,8 +84,10 @@ if __name__ == "__main__":
 
     training_args = TrainingArguments(
         output_dir = config['logging']['save_dir'],            
-        evaluation_strategy = "epoch",
-        save_strategy = "epoch",       
+        save_strategy = "steps",
+        eval_strategy = "steps",
+        eval_steps = 100,
+        max_steps = 1000,
         learning_rate = config['learning_rate'],
         per_device_train_batch_size = config['batch_size'],
         per_device_eval_batch_size = config['batch_size'],
@@ -110,6 +115,10 @@ if __name__ == "__main__":
 
     print("Evaluation Results:", results)
 
+    test_results = trainer.evaluate(eval_dataset=tokenized_test)
+    print("Test Results:", test_results)
+
 
     if config["logging"]["wandb"]:
         wandb.log({"Evaluation results": results})
+        wandb.log({"Test results": test_results})

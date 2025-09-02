@@ -3,9 +3,6 @@ from transformers import AutoTokenizer, AutoModel, pipeline
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report, accuracy_score
 import torch
-from torch.utils.data import DataLoader
-import numpy as np
-import random
 import wandb
 from torch.utils.tensorboard import SummaryWriter
 from utils import extract_features
@@ -34,7 +31,7 @@ if __name__ == "__main__":
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     if config["logging"]["wandb"]: 
-        wandb.init(project="svm-text-classifier", config=config)
+        wandb.init(project=config['project_name'], config=config)
     if config["logging"]["tensorboard"]:
         writer = SummaryWriter(log_dir=f"logs/{config['logging']['tb_logs']}")
 
@@ -50,6 +47,9 @@ if __name__ == "__main__":
     # Exercise 1.2
     tokenizer = AutoTokenizer.from_pretrained(config['model_name'])
     model = AutoModel.from_pretrained(config['model_name'])
+
+    print(f"Tokenizing dataset with {config['model_name']} tokenizer")
+    print(f"Model: {model}")
 
     # Exercise 1.3
     training_split = dataset['train']

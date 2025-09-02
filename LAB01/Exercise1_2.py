@@ -1,6 +1,6 @@
 """
 LAB01
-Exercise 1.1
+Exercise 1.2
 
 Testing an MLP with skip connections on the MNIST dataset
 """

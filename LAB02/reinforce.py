@@ -1,3 +1,11 @@
+"""
+LAB02
+Exercise 3
+
+Fine-tuning CLIP with lora
+"""
+
+# Import external libraries
 import torch
 import gymnasium as gym
 from torch.utils.tensorboard import SummaryWriter
@@ -7,6 +15,9 @@ import wandb
 
 
 def run_episode(env, policy, device=torch.device("cpu")):
+    """
+    Run a single episode using the given policy in the provided environment
+    """
 
     observations = []
     actions = []
@@ -41,12 +52,17 @@ def run_episode(env, policy, device=torch.device("cpu")):
     return observations, actions, log_probs, rewards
 
 
-def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=20, check_freq=20, standardize=False, value_function=None, device=torch.device("cpu"), record=True, winning_score=195, config=None):
+def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=20, check_freq=20, standardize=False, value_function=None, device=torch.device("cpu"), record=False, winning_score=195, config=None):
+    """
+    Modular reinforce algorithm for policy gradient
+    """
 
+    # Logging
     if config is not None and config["logging"]["wandb"]:
         wandb.init(project=config["project_name"])
         wandb.watch(policy, log="all")
 
+    # Video recording
     if record:
         video_dir = "assets/videos"
         os.makedirs(video_dir, exist_ok=True)
@@ -59,14 +75,15 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=20, check_f
 
     policy.to(device)
 
+    # Set policy function optimizer
     if config["training"]["optimizer"] == "adamW":
         policy_opt = torch.optim.AdamW(policy.parameters(), lr=config["training"]["learning_rate"], weight_decay=0.0001)
     else:
         policy_opt = torch.optim.Adam(policy.parameters(), lr=config["training"]["learning_rate"])
-    
 
     policy.train()
     
+    # If value function is provided set optimizer
     if value_function is not None:
         value_function.to(device)
         if config["training"]["optimizer"] == "adamW":
@@ -76,6 +93,8 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=20, check_f
         mse_loss = torch.nn.MSELoss()
         value_function.train()
 
+
+    # Restart from checkpoint if it exist
     if os.path.exists(config["logging"]["save_dir"]):
         latest_checkpoint = f"{config['project_name']}_latest_checkpoint.pth"
         checkpoint_path = os.path.join(config["logging"]["save_dir"], latest_checkpoint)
@@ -95,15 +114,14 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=20, check_f
 
     writer = SummaryWriter(log_dir="runs/reinforce_cartpole")
 
+
+
     for episode in range(num_episodes):
 
         print(f"Episode {episode + 1}/{num_episodes}")
-
         G = 0
         returns = []
-        
         (observations, actions, log_probs, rewards) = run_episode(env, policy, device)
-
 
         for t in reversed(rewards):
             G = t + gamma * G
@@ -111,7 +129,6 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=20, check_f
 
             
         returns = torch.tensor(returns, dtype=torch.float32)
-        
         ep_reward = sum(rewards)
 
         running_rewards.append(0.05 * ep_reward + 0.95 * running_rewards[-1])
@@ -136,7 +153,7 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=20, check_f
                 baseline = value_function(observations)
                 baseline = baseline.view(-1)
             
-            # Create advantages (new tensor, not in-place modification)
+            # Create advantages in new tensor
             advantages = returns - baseline
             returns = advantages
 
@@ -153,6 +170,7 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=20, check_f
         loss.backward()
         policy_opt.step()
 
+    # Logging
         if config is not None and config["logging"]["wandb"]:
             wandb.log({
                 "Episode": episode + 1,
@@ -160,9 +178,6 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=20, check_f
                 "Running Avg Reward": running_rewards[-1],
                 "Loss": loss.item()
             })
-
-
-
 
         if episode % check_freq == 0:
             print(f"Episode {episode + 1}, Total Reward: {ep_reward}, Running Avg: {running_rewards[-1]}")
@@ -203,7 +218,7 @@ def reinforce(policy, env, env_render=None, gamma=0.99, num_episodes=20, check_f
                 policy.eval()
                 run_episode(env_render, policy, device)
                 policy.train()
-            #print(f'Running reward: {running_rewards[-1]}')
+            
     
     
     policy.eval()

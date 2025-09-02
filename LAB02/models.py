@@ -1,8 +1,20 @@
+
+"""
+LAB02
+Exercise 2
+
+Policy Gradient Method applied to the cartpole environment
+"""
+
+# Import external libraries
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
 
 class Policy(nn.Module):
+    """
+    Policy network for the cartpole environment
+    """
     def __init__(self, input_size, actions, softmax=True):
         super(Policy, self).__init__()
         self.softmax = softmax
@@ -28,6 +40,9 @@ class Policy(nn.Module):
 
 
 class Policy_Lander(nn.Module):
+    """
+    Policy network for the Lunar Lander environment
+    """
     def __init__(self, input_size, actions, softmax=True):
         super(Policy_Lander, self).__init__()
         self.softmax = softmax

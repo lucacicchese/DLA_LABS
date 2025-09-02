@@ -4,7 +4,8 @@
 
 1. [Completed exercises](#completed-exercises)
 2. [File Structure](#file-structure)
-3. [References](#references)
+3. [References](#main-references)
+4. [Reflections on completing the labs](#reflections-on-completing-the-labs)
 
 ## Completed exercises
 
@@ -36,3 +37,5 @@ Each lab has its own folder called LAB**XX** containing
 Voigt Godoy**
 - [Gymnasium documentation](https://gymnasium.farama.org)
 - [Hugging Face documentation](https://huggingface.co/docs)
+
+## Reflections on completing the labs

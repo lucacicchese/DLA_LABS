@@ -81,7 +81,7 @@ class my_CNN(nn.Module):
         self.layers = nn.Sequential()
         current_size = size
 
-        self.activations = []
+        self.last_conv_output = None
   
         for i in range(len(layer_sizes)-1):
             self.layers.add_module(f'conv-layer-{i}', nn.Conv2d(in_channels, layer_sizes[i], kernel_size, stride, padding))
@@ -105,14 +105,15 @@ class my_CNN(nn.Module):
         x = self.layers(x)   # up to GAP
         x = self.last_conv(x)
         x = self.last_relu(x)
+        self.last_conv_output = x
         x = self.gap(x)
         x = torch.flatten(x, 1)
         #x = self.linear_layer(x)
         
         return x
 
-    def save_activation(self, module, input, output):
-        self.activations.append(output.detach())
+    def save_last_conv_output(self, module, input, output):
+        self.last_conv_output = output
 
-    def get_activation(self):
-        return self.activations[-1]
+    def get_last_conv_output(self):
+        return self.last_conv_output
