@@ -42,6 +42,13 @@ The reinforce function used for this exercise was further expanded in the follow
 
 ### Gymnasium CartPole-v1 environment
 
+The CartPole-v1 environment is a relatively simple control task compared to environments like Lunar Lander. The agent has only two possible actions:
+
+- 0: move the cart to the left
+- 1: move the cart to the right
+
+The objective is to balance a pole hinged on a moving cart by applying forces to the cart. The episode ends when the pole falls past a certain angle or the cart moves too far from the center.
+
 ### Implementation 1
 
 The main effort in this first exercise was to build a srong foundation for the following exercises and that's exactly what I did.
@@ -51,7 +58,10 @@ The policy network was implemented as a simple MLP with one hidden layer of 128 
 
 ### Results 1
 
-1084 episodes
+By clicking on the following image you can see how the agent performs at the end of training
+[![Watch the solution video](assets/cartpole.png)](https://youtu.be/sLSyoD4sFgE)
+
+The agent was able to solve the environment in 1084 episodes.
 ![Running avg](assets/run_avg_ex1.png)
 
 ## Exercise 2 - Reinforce + baseline on cartpole
@@ -94,7 +104,11 @@ The implementation is the same used for the previous exercise but the main file 
 I considered the environment solved when the running average reaches 200 points as the documentation clearly states that is the goal to consider an episode a solution. It can also be seen in the video shows that at that point the agent learnt to land the Lander without crashing it and turns off most thrusters
 The agent was able to get to that state after just 914 episodes.
 ![Running avg](assets/run_avg_ex3.png)
+By clicking on the following image you can see how the agent performs at the end of training
+[![Watch the solution video](assets/lunarlander.png)](https://youtu.be/5qeNzieyuRM)
 
 In LunarLander-v3 was also added the wind option so I also tested how my implementation worked when the environment got even more complex. Fine-tuning the learning rate (making it smaller so the agent could learn faster) was enough for it to handle the environment even when wind was enabled. The change in learning rate shortened the training to just 422 episodes!
 
 ![Running avg](assets/run_avg_ex3_wind.png)
+By clicking on the following image you can see how the agent performs at the end of training
+[![Watch the solution video](assets/lunarlander_wind.png)](https://youtu.be/61jpp1mGXF4)

@@ -143,8 +143,29 @@ I finally tested the trained model on the test set and it achieved a result cons
 
 ## Exercise 2.3 - Explain the predictions of a CNN
 
-### Imagenette dataset
+In this exercise, I implemented the Class Activation Mapping (CAM) algorithm to explain the predictions made by the CNN from the previous exercise but this time trained on the *Imagenette* dataset. The goal was to visualize the regions of input images that most strongly influenced the model's classification decisions. This involved modifying the CNN architecture to retain spatial information in the final convolutional layers and computing class-specific activation maps using the learned weights. The main challenges in this exercise included correctly handling feature maps.
 
 ### Implementation 2.3
 
+In this exercise I created a pipeline to generate Class Activation Maps for my CNN. The core function, *generate_class_activation_map* takes a trained model and an input image and extracts the output of the last convolutional layer. Then it computes a class-specific activation map. The CAM highlights the regions in the image that most influenced the model's prediction, helping to interpret how the CNN "sees" different classes.The confidence score for the predicted class is also computed to give context to the visual explanation.
+
+To make the results easy to interpret I also implemented a visualization and export function called *save_cam_visualization* which creates a side-by-side comparison of the original image, the standalone CAM, and an overlay of the two. The cam function ties everything together by sampling a few images from each class in the test dataset, running CAM generation on them, and saving the resulting visualizations in a structured folder. This setup allows for quick analysis of how the model behaves across all classes and can be reused or extended for further model interpretability experiments.
+
 ### Results 2.3
+
+The results I obtained from this experiment are interesting and support what I lernt from the literature.
+In some cases the CNN focuses very well on the correct parts of the image to determin the class, following avision pattern similar to how humans see.
+This example shows clearly that the correct prediction of *french horn* class was made based on the observation of what the man is holding and especially the more unique parts of it.
+![Good sample french horn](assets/sample_2_idx_1936.png)
+In this other example this *church* was correctly classified by looking at its windows and its bell tower but interestingly it ignored the roof.
+![Good sample church](assets/sample_1_idx_1526.png)
+
+In some other cases though the CNN *cheats* and the following example is a great example of it. The model correctly classifies this image as *parachute* and says so with an incredibly high confidence but this is only the result of looking at the sky and ignoring the parachute.
+![Good sample parachute 1](assets/sample_0_idx_3535.png)
+Here is another example of the same fenomenon:
+![Good sample parachute](assets/sample_2_idx_3537.png)
+When the model doesn't learn to recognize the actual *class object* but recognizes the enviroment is easier to trick. The proof is in the following image, The correct class is *parachute* but because the image isn't filled with a blue sky as the previous samples it gets missclassified as a *church*.
+![Bad sample parachute](assets/sample_1_idx_3536.png)
+And also the same can happen, in this case this church as a background with a lot of sky so the model ignores the actual subject and confidently categorizes it as a parachute.
+![Bad sample church](assets/sample_2_idx_1527.png)
+This experiment gave me a great insight in how my model learnt and what its limitation can actually be.
