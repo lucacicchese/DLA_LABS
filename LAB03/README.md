@@ -21,16 +21,13 @@
 ```linux
 LAB03
 │   README.md
-│   environment.yml
 │   exercise_1.py
 │   exercise_2.py
 │   exercise_3.py
 │   evaluate.py
 │   clip.py
-│   LoRA.py
-│   utils.py
-│   
-
+│   lora.py
+│   utils.py 
  ```
 
 ## Exercise 1 - DistilBERT on rotten tomatoes
@@ -39,7 +36,7 @@ In this exercise I implemented a text classification pipeline for sentiment anal
 
 ### DistilBERT
 
-DistilBERT is a distilled version of BERT. This means that knowledge was transfered to this new smaller model retaining as much as possible the performance of the bigger one. DistilBERT has about 66M parameters compared to the 110M of the normal BERT but still performs almost as well.
+DistilBERT is a distilled version of BERT. This means that knowledge was transferred to this new smaller model retaining as much as possible of the performance of the bigger one. DistilBERT has about 66M parameters compared to the 110M of the normal BERT but still performs almost as well.
 BERT is a model mainly used for text classification, sentiment analysis and similar tasks.
 
 ### Rotten Tomatoes dataset
@@ -50,7 +47,7 @@ The dataset used in this exercise has been the Cornell Movie Reviews dataset. I 
 - it has about 1.07k examples in the validation and test sets
 - each set is perfectly balanced with 50% positive and 50% negative reviews
 - negative reviews have been labeled with 0 and positive ones with 1
-- the minimum string lenth is 4 characters and  maximum length is 267
+- the minimum string length is 4 characters and  maximum length is 267
 
 ### Implementation 1
 
@@ -108,7 +105,7 @@ Fine tuning CLIP proved to be a much greater challenge than fine-tuning DistilBE
 
 ### CLIP
 
-CLIP is a is a multimodal vision and language model that aligns in the same embedding space both image and text encodings. It can be used for zero-shot image classification, generating images descriptions or finding images based on a given description.
+CLIP is a multimodal vision and language model that aligns in the same embedding space both image and text encodings. It can be used for zero-shot image classification, generating images descriptions or finding images based on a given description.
 
 ### TinyImagenet dataset
 
@@ -122,16 +119,14 @@ First of all to establish a baseline I used CLIP on the dataset to test it's zer
 
 To be able to run this fine-tuning a lot of custom solutions proved necessary.
 
-To fine-tune the model in a parameter efficent way, I applied LoRA (Low-Rank Adaptation), which focuses on fine-tuning specific parts of the model (like the query and value projection layers) rather than training the entire model. This significantly reduces the number of parameters being updated and helps prevent memory exhaustion during training.
+To fine-tune the model in a parameter efficient way, I applied LoRA (Low-Rank Adaptation), which focuses on fine-tuning specific parts of the model (like the query and value projection layers) rather than training the entire model. This significantly reduces the number of parameters being updated and helps prevent memory exhaustion during training.
 The LoRA configuration specifies which parts of the model to fine-tune, in this case, the query projection (`q_proj`) and value projection (`v_proj`) layers. This was done using the LoRAConfig and `get_peft_model` function from the `peft` library. I chose these parts because in the original LoRA paper the authors established that injecting into the attention-related weight matrices is highly effective and it doesn't require too much compute power.
 
 I also had to use a custom collator and trainer. In the training process, the model expects a batch of data consisting of both images and their corresponding text inputs. I implemented a custom collator function `clip_collator` to ensure that the data is batched efficiently.
 
-I had to write a custom `CLIPTrainer` with a `compute_loss` function that calculates the contrastive loss by comparing the similarity between the image and text embeddings by taking the diagonal of the similarity matrix and useing it to compute a cross-entropy loss for image-text pairs.
+I had to write a custom `CLIPTrainer` with a `compute_loss` function that calculates the contrastive loss by comparing the similarity between the image and text embeddings by taking the diagonal of the similarity matrix and using it to compute a cross-entropy loss for image-text pairs.
 
-The training process was managed using Hugging Face’s Trainer API. The custom CLIPTrainer was created to accommodate the contrastive loss and other custom behavior, such as caching text features for each class.
-
-Once training was complete, I evaluated the model's performance using several metrics, including accuracy, precision, recall, and F1 score.
+Once training was complete, I evaluated the model's performance using several metrics: accuracy, precision, recall, and F1 score.
 
 For tracking the experiment, I used both WandB and TensorBoard to log metrics, training progress, and visualizations.
 
@@ -148,7 +143,7 @@ Before any fine-tuning, I evaluated the model on the validation set using a zero
 
 This baseline provided a solid starting point for comparison, showing that the pre-trained CLIP model was already performing reasonably well (as expected) on the TinyImageNet dataset.
 
-After fine-tuning the model using LoRA, which involved training just 491,520 parameters out of a total of 150,112,257 parameters. That means that by training approximately 0.33% of the parameters the model's performance showed considerable improvement:
+After fine-tuning the model using LoRA, only 491,520 parameters were trained out of a total of 150,112,257, approximately 0.33% of the entire model. Despite this small fraction, the model's performance showed considerable improvement:
 
 - Accuracy: 0.7667
 - Precision: 0.7747
